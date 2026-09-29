@@ -1,0 +1,102 @@
+@import 'tailwindcss';
+
+/* 千牛工作台配色令牌。改这里即可整体换肤。 */
+@theme {
+  /* 最左侧深蓝导航条 */
+  --color-rail: #232f5c;
+  --color-rail-hover: #2d3a6e;
+  --color-rail-active: #3a4880;
+  --color-rail-ink: #c8cee4;
+  --color-rail-ink-active: #ffffff;
+
+  /* 千牛蓝：主按钮 / 激活态 */
+  --color-brand: #2b7fff;
+  --color-brand-hover: #1a6ef0;
+  --color-brand-soft: #eaf2ff;
+
+  /* 面 / 底 / 线 */
+  --color-panel: #ffffff;
+  --color-canvas: #f4f5f7;
+  --color-line: #e7e9ee;
+  --color-line-soft: #f0f1f4;
+
+  /* 文字 */
+  --color-ink: #1c1e23;
+  --color-ink-2: #55585f;
+  --color-ink-3: #9296a0;
+  --color-ink-4: #b6bac3;
+
+  /* 语义色 */
+  --color-buyer-bubble: #ffffff;
+  --color-agent-bubble: #d6eaff;
+  --color-promo: #ff6a00;
+  --color-promo-soft: #fff2e8;
+  --color-danger: #f5222d;
+  --color-success: #17b26a;
+
+  /* 输出态功能色。只有三种状态用得上，不参与整体换肤。
+     AI绿 = 输出① 自动发送；报备琥珀 = 输出③；转交红 = 输出④ 与风险提示。 */
+  --color-ai-soft: #eef7f1;
+  --color-ai-line: #b4d6c1;
+  --color-ai-ink: #1f5133;
+  --color-ai-ink-2: #6e9b7e;
+
+  --color-hold: #b45309;
+  --color-hold-soft: #fdf3ea;
+  --color-hold-line: #f0dcc4;
+  --color-hold-ink: #9a5b12;
+
+  --color-risk-soft: #fdf3f2;
+  --color-risk-line: #d4887f;
+  --color-risk-ink: #8e2b20;
+  --color-risk-ink-2: #a0554c;
+
+  --font-sans:
+    'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans SC', system-ui,
+    -apple-system, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-ink);
+    background: var(--color-canvas);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+
+  input,
+  textarea {
+    font: inherit;
+  }
+}
+
+/* 细滚动条，贴近桌面客户端观感 */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d7dd transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d4d7dd;
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

@@ -1,0 +1,24 @@
+# 前端
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 后端
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# 本地环境
+.env
+.env.local
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 演示用的临时截图
+_shot.png
