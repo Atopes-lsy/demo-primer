@@ -38,12 +38,12 @@ export default function SessionItem({ session, active, onClick }: Props) {
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="truncate text-xs font-medium text-ink">{session.买家昵称}</span>
-          <span className="shrink-0 text-[11px] text-ink-3">{最近时间}</span>
+          <span className="shrink-0 text-body text-ink-3">{最近时间}</span>
         </span>
         <span className="mt-0.5 flex items-center justify-between gap-2">
-          <span className="truncate text-[11px] text-ink-3">{摘要}</span>
+          <span className="truncate text-body text-ink-3">{摘要}</span>
           {session.未读 ? (
-            <span className="shrink-0 rounded-full bg-danger px-1.5 text-[10px] leading-4 text-white">
+            <span className="shrink-0 rounded-full bg-danger px-1.5 text-note leading-4 text-white">
               {session.未读}
             </span>
           ) : null}

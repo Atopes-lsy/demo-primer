@@ -28,7 +28,7 @@ export default function ProductCard({ 订单 }: Props) {
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-xs font-medium text-ink">{订单.商品名称}</h3>
 
-        <p className="mt-1.5 flex items-baseline gap-3 text-[11px] text-ink-3">
+        <p className="mt-1.5 flex items-baseline gap-3 text-body text-ink-3">
           <span>
             数量 <span className="text-ink-2">{订单.数量}</span>
           </span>

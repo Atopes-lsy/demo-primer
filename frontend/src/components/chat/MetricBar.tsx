@@ -27,7 +27,7 @@ export default function MetricBar({ agent, metrics }: Props) {
       <div className="scrollbar-thin flex flex-1 items-center gap-4 overflow-x-auto">
         {visible.map((m) => (
           <div key={m.标签} className="flex shrink-0 items-center gap-1 whitespace-nowrap">
-            <span className="text-[11px] text-ink-3">{m.标签}</span>
+            <span className="text-body text-ink-3">{m.标签}</span>
             <span
               className={`text-xs font-medium ${
                 m.强调 === 'up'
@@ -46,7 +46,7 @@ export default function MetricBar({ agent, metrics }: Props) {
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex shrink-0 items-center gap-0.5 text-[11px] text-brand hover:underline"
+        className="flex shrink-0 items-center gap-0.5 text-body text-brand hover:underline"
       >
         {expanded ? '收起' : '展开'}
         <ChevronDown size={12} className={expanded ? 'rotate-180 transition-transform' : 'transition-transform'} />

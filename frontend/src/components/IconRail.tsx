@@ -53,9 +53,9 @@ function RailButton({
       }`}
     >
       <Icon size={20} strokeWidth={1.8} />
-      <span className="text-[11px] leading-none">{item.key}</span>
+      <span className="text-body leading-none">{item.key}</span>
       {item.badge ? (
-        <span className="absolute top-1.5 right-2 min-w-4 rounded-full bg-danger px-1 text-center text-[10px] leading-4 text-white">
+        <span className="absolute top-1.5 right-2 min-w-4 rounded-full bg-danger px-1 text-center text-note leading-4 text-white">
           {item.badge > 99 ? '99+' : item.badge}
         </span>
       ) : null}

@@ -31,7 +31,7 @@ export default function RoundPanel({ items }: Props) {
 
   return (
     <div className="border-t border-line-soft bg-canvas px-3 py-2">
-      <p className="text-[10px] font-medium text-ink-2">
+      <p className="text-note font-medium text-ink-2">
         本轮处置
         <span className="ml-1 font-normal text-ink-4">
           主卡只显示最高态，其余在这里可查
@@ -40,13 +40,13 @@ export default function RoundPanel({ items }: Props) {
 
       <ul className="mt-1.5 space-y-1">
         {items.map((d) => (
-          <li key={d.主张} className="flex items-baseline gap-1.5 text-[11px]">
+          <li key={d.主张} className="flex items-baseline gap-1.5 text-body">
             <span className="shrink-0 text-ink-4">◆</span>
             <span className="shrink-0 text-ink">{d.主张}</span>
             <span className="shrink-0 text-ink-4">→</span>
             <span className={配色[d.输出]}>{说法[d.输出]}</span>
             {d.说明 ? (
-              <span className="truncate text-[10px] text-ink-4">（{d.说明}）</span>
+              <span className="truncate text-note text-ink-4">（{d.说明}）</span>
             ) : null}
           </li>
         ))}

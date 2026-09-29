@@ -29,10 +29,10 @@ function ChatHeader({ session }: { session: Session }) {
     <div className="flex h-9 shrink-0 items-center justify-between border-b border-line-soft bg-panel px-3">
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-medium text-ink">{session.买家昵称}</span>
-        <span className="rounded-sm bg-canvas px-1.5 text-[10px] leading-4 text-ink-3">
+        <span className="rounded-sm bg-canvas px-1.5 text-note leading-4 text-ink-3">
           {session.stage === '历史联系' ? '老客' : '陌生人'}
         </span>
-        <span className="text-[11px] text-ink-4">{session.会话ID}</span>
+        <span className="text-body text-ink-4">{session.会话ID}</span>
       </div>
       <div className="flex items-center gap-2 text-ink-3">
         <button type="button" title="刷新" className="hover:text-ink-2">

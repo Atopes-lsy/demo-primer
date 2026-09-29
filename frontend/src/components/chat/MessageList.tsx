@@ -39,7 +39,7 @@ function Message({ message }: { message: ChatMessage }) {
           isAI ? 'mr-6' : ''
         }`}
       >
-        <time className="mb-1 text-[10px] text-ink-4">{time}</time>
+        <time className="mb-1 text-note text-ink-4">{time}</time>
 
         <div
           className={`rounded-lg px-2.5 py-2 text-xs leading-relaxed wrap-break-word whitespace-pre-wrap ${
@@ -53,7 +53,7 @@ function Message({ message }: { message: ChatMessage }) {
           {message.内容类型 === '图片' ? (
             <span className="flex flex-col gap-1.5">
               {message.message_text ? <span>{message.message_text}</span> : null}
-              <span className="flex h-24 w-32 flex-col items-center justify-center gap-1 rounded bg-canvas text-[10px] text-ink-4">
+              <span className="flex h-24 w-32 flex-col items-center justify-center gap-1 rounded bg-canvas text-note text-ink-4">
                 <ImageIcon size={16} />
                 {message.image_path.split('/').pop()}
               </span>
@@ -65,11 +65,11 @@ function Message({ message }: { message: ChatMessage }) {
 
         {/* AI 代发必须标出处，客服一眼看出哪句不是自己说的。 */}
         {message.署名 ? (
-          <span className="mt-1 text-[10px] text-ai-ink-2">◆ {message.署名}</span>
+          <span className="mt-1 text-note text-ai-ink-2">◆ {message.署名}</span>
         ) : null}
 
         {!isAI && message.scene_minor ? (
-          <span className="mt-1 text-[10px] text-ink-4">{message.scene_minor}</span>
+          <span className="mt-1 text-note text-ink-4">{message.scene_minor}</span>
         ) : null}
       </div>
     </div>

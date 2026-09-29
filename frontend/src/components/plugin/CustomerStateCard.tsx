@@ -26,19 +26,19 @@ export default function CustomerStateCard({ rows }: Props) {
     <section className="rounded-md border border-line bg-panel">
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-xs font-medium text-ink">顾客情况</h2>
-        <span className="text-[10px] text-ink-4">每条消息都重读</span>
+        <span className="text-note text-ink-4">每条消息都重读</span>
       </header>
 
       <div className="border-t border-line-soft">
         {可见.map((row) => (
           <div key={row.标签} className="border-b border-line-soft px-3 py-2 last:border-b-0">
-            <p className="text-[10px] tracking-wide text-ink-4">{row.标签}</p>
+            <p className="text-note tracking-wide text-ink-4">{row.标签}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-ink">{row.值}</p>
             {row.备注 ? (
-              <p className="mt-0.5 text-[11px] leading-relaxed text-ink-3">{row.备注}</p>
+              <p className="mt-0.5 text-body leading-relaxed text-ink-3">{row.备注}</p>
             ) : null}
             {row.警示 ? (
-              <p className="mt-0.5 text-[11px] font-medium text-danger">⚠ {row.警示}</p>
+              <p className="mt-0.5 text-body font-medium text-danger">⚠ {row.警示}</p>
             ) : null}
           </div>
         ))}
@@ -48,7 +48,7 @@ export default function CustomerStateCard({ rows }: Props) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex w-full items-center justify-center gap-1 border-t border-line-soft py-1.5 text-[11px] text-ink-3 hover:bg-canvas hover:text-ink-2"
+          className="flex w-full items-center justify-center gap-1 border-t border-line-soft py-1.5 text-body text-ink-3 hover:bg-canvas hover:text-ink-2"
         >
           {expanded ? (
             <>

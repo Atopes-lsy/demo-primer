@@ -57,13 +57,13 @@ export default function Composer({
           <button
             key={t}
             type="button"
-            className="text-[11px] text-ink-3 hover:text-brand"
+            className="text-body text-ink-3 hover:text-brand"
           >
             {t}
           </button>
         ))}
 
-        <span className="ml-auto text-[10px] text-ink-4">Enter 发送 / Shift + Enter 换行</span>
+        <span className="ml-auto text-note text-ink-4">Enter 发送 / Shift + Enter 换行</span>
 
         <button
           type="button"

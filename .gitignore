@@ -22,3 +22,6 @@ Thumbs.db
 
 # 演示用的临时截图
 _shot.png
+
+#文档、数据
+data/

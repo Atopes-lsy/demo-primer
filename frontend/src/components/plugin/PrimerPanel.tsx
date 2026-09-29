@@ -57,10 +57,10 @@ export default function PrimerPanel({ session, onUseScript, onReport, onHandover
               转交={session.转交}
             />
           ) : (
-            <p className="rounded-md border border-line bg-panel px-3 py-4 text-center text-[11px] text-ink-4">
+            <p className="rounded-md border border-line bg-panel px-3 py-4 text-center text-body text-ink-4">
               本轮无需客服动作
               <br />
-              <span className="text-[10px]">AI 已自行处理或无事可做</span>
+              <span className="text-note">AI 已自行处理或无事可做</span>
             </p>
           )}
         </div>

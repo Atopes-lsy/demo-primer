@@ -97,7 +97,7 @@ export default function SessionPanel({ sessions, activeId, onSelect }: Props) {
             ({ stage, items }) =>
               items.length > 0 && (
                 <div key={stage}>
-                  <div className="flex items-center justify-between bg-canvas px-3 py-1.5 text-[11px] text-ink-2">
+                  <div className="flex items-center justify-between bg-canvas px-3 py-1.5 text-body text-ink-2">
                     <span className="font-medium">
                       {stage} {items.length}
                     </span>

@@ -57,7 +57,7 @@ export default function 播放器({ state, 剧本, 当前消息 }: Props) {
   return (
     <div className="shrink-0 border-b border-line-soft bg-[#fbfcfe] px-3 py-2.5">
       <div className="flex items-center gap-2">
-        <span className="shrink-0 rounded-sm bg-rail px-1.5 py-0.5 text-[10px] font-medium leading-4 text-rail-ink-active">
+        <span className="shrink-0 rounded-sm bg-rail px-1.5 py-0.5 text-note font-medium leading-4 text-rail-ink-active">
           {剧本 ? '演示' : '回放'}
         </span>
 
@@ -102,13 +102,13 @@ export default function 播放器({ state, 剧本, 当前消息 }: Props) {
           ))}
         </div>
 
-        <span className="shrink-0 font-mono text-[10px] tabular-nums text-ink-3">
+        <span className="shrink-0 font-mono text-note tabular-nums text-ink-3">
           第 {已播条数} / 共 {总条数} 条
         </span>
 
         {/* 跳播：输条数按回车。不用 change 事件 —— 数字框上下箭头每点一下都触发
             change，进度会跟着乱蹦。 */}
-        <label className="flex shrink-0 items-center gap-1 text-[10px] text-ink-3">
+        <label className="flex shrink-0 items-center gap-1 text-note text-ink-3">
           跳到
           <input
             type="number"
@@ -122,7 +122,7 @@ export default function 播放器({ state, 剧本, 当前消息 }: Props) {
               跳到(Number(e.currentTarget.value))
               e.currentTarget.blur()
             }}
-            className="w-10 rounded-sm border border-line bg-panel px-1 py-0.5 text-center text-[10px] tabular-nums text-ink outline-none focus:border-brand disabled:bg-canvas disabled:text-ink-4"
+            className="w-10 rounded-sm border border-line bg-panel px-1 py-0.5 text-center text-note tabular-nums text-ink outline-none focus:border-brand disabled:bg-canvas disabled:text-ink-4"
           />
           条
         </label>
@@ -133,7 +133,7 @@ export default function 播放器({ state, 剧本, 当前消息 }: Props) {
               key={v}
               type="button"
               onClick={() => 设倍速(v)}
-              className={`rounded-sm px-1.5 py-0.5 text-[10px] leading-4 transition-colors ${
+              className={`rounded-sm px-1.5 py-0.5 text-note leading-4 transition-colors ${
                 v === 倍速 ? 'bg-brand text-white' : 'text-ink-3 hover:bg-canvas hover:text-ink-2'
               }`}
             >
@@ -144,24 +144,24 @@ export default function 播放器({ state, 剧本, 当前消息 }: Props) {
       </div>
 
       <div className="mt-1.5 flex items-baseline gap-2 pl-13">
-        <span className="shrink-0 text-[10px] text-ink-4">{状态}</span>
+        <span className="shrink-0 text-note text-ink-4">{状态}</span>
 
         {事件 ? (
           <>
-            <span className="shrink-0 text-[11px] font-medium text-ink">
+            <span className="shrink-0 text-body font-medium text-ink">
               第 {当前步} 步 · {事件.标题}
             </span>
-            {事件.备注 ? <span className="truncate text-[11px] text-ink-3">{事件.备注}</span> : null}
+            {事件.备注 ? <span className="truncate text-body text-ink-3">{事件.备注}</span> : null}
           </>
         ) : 当前消息 ? (
           <>
-            <span className="shrink-0 text-[11px] font-medium text-ink">
+            <span className="shrink-0 text-body font-medium text-ink">
               第 {已播条数} 条 · {当前消息.角色} {当前消息.发送时间.slice(11, 16)}
             </span>
-            <span className="truncate text-[11px] text-ink-3">{当前消息.message_text}</span>
+            <span className="truncate text-body text-ink-3">{当前消息.message_text}</span>
           </>
         ) : (
-          <span className="text-[11px] text-ink-3">
+          <span className="text-body text-ink-3">
             共 {总条数} 条 · 约 {时长(总耗时)}（1x） · 点播放开始，或直接点上面的刻度跳到某一条
           </span>
         )}

@@ -34,6 +34,9 @@
   --color-danger: #f5222d;
   --color-success: #17b26a;
 
+  /* 细滚动条的滑块色 */
+  --color-scrollbar: #d4d7dd;
+
   /* 输出态功能色。只有三种状态用得上，不参与整体换肤。
      AI绿 = 输出① 自动发送；报备琥珀 = 输出③；转交红 = 输出④ 与风险提示。 */
   --color-ai-soft: #eef7f1;
@@ -50,6 +53,38 @@
   --color-risk-line: #d4887f;
   --color-risk-ink: #8e2b20;
   --color-risk-ink-2: #a0554c;
+
+  /* ── 字号 ──────────────────────────────────────────────
+     四档。改这里全站生效。
+
+     组件里原先散着 60 处 text-[10px] / text-[11px] 硬编码（14 个文件），
+     现已全部收进下面这四档。text-xs 是 Tailwind 内建名，值本来就是 12px，
+     这里显式写出来，是为了让它和另外三档排在一起，改的时候一眼能看全。
+
+       档位    令牌            值     用在哪
+       ────────────────────────────────────────────────
+       脚注    --text-note     10px   徽标、时间戳、注释
+       正文    --text-body     11px   正文、说明、按钮（用得最多，34 处）
+       标题    --text-xs       12px   面板标题、卡片标题、按钮文字
+       强调    --text-base     13px   面板主标题
+       （--text-lg 18px 保持 Tailwind 默认，留给大数字用）
+  */
+  --text-note: 10px;
+  --text-body: 11px;
+  --text-xs: 12px;
+  --text-base: 13px;
+
+  /* ── 圆角 ──────────────────────────────────────────────
+     rounded-full 是 Tailwind 内建的，不走这里。 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* ── 动效 ──────────────────────────────────────────────
+     组件里有 12 处过渡没写时长（9 处 transition-colors、2 处
+     transition-transform、1 处 transition-all），走的就是这个默认值。
+     改它，全站过渡快慢一起变。 */
+  --default-transition-duration: 150ms;
 
   --font-sans:
     'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans SC', system-ui,
@@ -86,14 +121,14 @@
 /* 细滚动条，贴近桌面客户端观感 */
 @utility scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #d4d7dd transparent;
+  scrollbar-color: var(--color-scrollbar) transparent;
 
   &::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   &::-webkit-scrollbar-thumb {
-    background: #d4d7dd;
+    background: var(--color-scrollbar);
     border-radius: 3px;
   }
   &::-webkit-scrollbar-track {
