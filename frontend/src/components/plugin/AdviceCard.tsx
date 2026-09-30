@@ -1,20 +1,48 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
-import { EVIDENCE_SOURCE, type Advice, type Evidence, type EvidenceSource } from '../../types'
+import {
+  EVIDENCE_SOURCE,
+  type Advice,
+  type ChatMessage,
+  type Evidence,
+  type EvidenceSource,
+} from '../../types'
+
+/**
+ * 报备卡上的三个状态。
+ *
+ * `等审批` 交上去了没回来 → `等发送` 审批回来了、话压在手上等客服点［一键发送］
+ * → `已答复` 那句话发出去了。
+ *
+ * **由进度和现场消息推出来，不另存**（见 `App` 的 `报备态`）：存一份就多一处
+ * 要跟播放进度同步的状态，而它本来就是「演到哪一步 + 那句发没发」的结论。
+ */
+export type 报备态 = '等审批' | '等发送' | '已答复'
 
 type Props = {
   advice: Advice
-  /** 「采用并发送」：把话术带进输入框，客服可改。 */
+  /** 「采用」：只把话术带进输入框，**不发** —— 发不发由客服按发送决定。 */
   onUseScript: () => void
   /** 「一键报备」：后台走审批，对话还在客服手里。 */
   onReport: () => void
   /** 「立即转交」：对话交出去，客服不再跟进。 */
   onHandover: () => void
+  /** 「一键发送」：审批回来了，把这一步备好的话发出去。 */
+  onSendPending: () => void
   /** 已报备后的等待状态。 */
   报备?: { 等待分钟: number; 工单号: string }
   /** 已转交后的交接单号。 */
   转交?: { 工单号: string }
+  /**
+   * 报备走到哪一步了。
+   *
+   * 必填，没有默认值：没有剧本的会话（那种没有播放器）走不到后面两态，调用方
+   * 给的就是 `等审批` —— 那是它算出来的结论，不该由这里替它兜一个。
+   */
+  报备态: 报备态
+  /** 审批回来、还没发出去的那句话（`剧本事件.待发` 的第一条）。 */
+  待发句?: ChatMessage
 }
 
 /** 主卡描边随形态变，这是右栏里唯一区分优先级的视觉信号。 */
@@ -107,7 +135,17 @@ function EvidenceList({ advice }: { advice: Advice }) {
  * 一轮可能拆出多条主张、产出不同输出，这里只显示最高态；其余的在输入框下方
  * 的「本轮处置」里逐条可查，免得客服以为 AI 抢了他的活或者漏做了什么。
  */
-export default function AdviceCard({ advice, onUseScript, onReport, onHandover, 报备, 转交 }: Props) {
+export default function AdviceCard({
+  advice,
+  onUseScript,
+  onReport,
+  onHandover,
+  onSendPending,
+  报备,
+  转交,
+  报备态,
+  待发句,
+}: Props) {
   return (
     <section className={`rounded-md border bg-panel ${描边[advice.形态]}`}>
       <header className="flex items-center justify-between px-3 py-2">
@@ -138,7 +176,7 @@ export default function AdviceCard({ advice, onUseScript, onReport, onHandover, 
               onClick={onUseScript}
               className="mt-2 w-full rounded bg-brand py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
             >
-              采用并发送
+              采用
             </button>
           </div>
         ) : null}
@@ -156,17 +194,47 @@ export default function AdviceCard({ advice, onUseScript, onReport, onHandover, 
             {报备 ? (
               <>
                 <p className="mt-2 rounded border border-hold-line bg-hold-soft py-1.5 text-center text-body text-hold-ink">
-                  已提交组长审批 · 顾客无感知
+                  {报备态 === '等审批'
+                    ? '已提交组长审批 · 顾客无感知'
+                    : '组长已批准 · 顾客无感知'}
                 </p>
-                <div className="mt-1.5 rounded border border-line-soft bg-canvas px-2 py-1.5">
-                  <p className="text-body font-medium text-ink-2">
-                    等待组长审批 · 已过 {报备.等待分钟} 分钟
-                  </p>
-                  <p className="mt-0.5 text-note text-ink-4">
-                    审批回来会提示你答复顾客，别忘记跟进
-                  </p>
-                  <p className="mt-0.5 text-note text-ink-4">报备单号 {报备.工单号}</p>
-                </div>
+
+                {/* 审批回来了：把要发的那句摆出来，客服看一眼再点。发一句他没看过
+                    的话成了盲发 —— 这一下按下去是要算在他头上的。 */}
+                {报备态 === '等发送' ? (
+                  <>
+                    {待发句 ? (
+                      <p className="mt-1.5 rounded border border-line-soft bg-canvas px-2 py-2 text-body leading-relaxed text-ink">
+                        {待发句.message_text}
+                      </p>
+                    ) : null}
+                    <p className="mt-1.5 text-body font-medium text-hold-ink">请答复顾客</p>
+                    <p className="mt-0.5 text-note text-ink-4">
+                      报备单号 {报备.工单号} · 这句是按审批口径写好的
+                    </p>
+                    <button
+                      type="button"
+                      onClick={onSendPending}
+                      className="mt-2 w-full rounded bg-hold py-1.5 text-xs font-medium text-white hover:opacity-90"
+                    >
+                      一键发送
+                    </button>
+                  </>
+                ) : (
+                  <div className="mt-1.5 rounded border border-line-soft bg-canvas px-2 py-1.5">
+                    <p className="text-body font-medium text-ink-2">
+                      {报备态 === '已答复'
+                        ? '已答复顾客'
+                        : `等待组长审批 · 已过 ${报备.等待分钟} 分钟`}
+                    </p>
+                    <p className="mt-0.5 text-note text-ink-4">
+                      {报备态 === '已答复'
+                        ? '答复里承诺的回访由专员接，这轮不用再跟'
+                        : '审批回来会提示你答复顾客，别忘记跟进'}
+                    </p>
+                    <p className="mt-0.5 text-note text-ink-4">报备单号 {报备.工单号}</p>
+                  </div>
+                )}
               </>
             ) : (
               <button

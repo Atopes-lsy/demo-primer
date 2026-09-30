@@ -1,7 +1,7 @@
 import { Puzzle, RotateCw, Settings2 } from 'lucide-react'
 
-import type { Session } from '../../types'
-import AdviceCard from './AdviceCard'
+import type { ChatMessage, Session } from '../../types'
+import AdviceCard, { type 报备态 } from './AdviceCard'
 import CustomerStateCard from './CustomerStateCard'
 
 type Props = {
@@ -9,6 +9,12 @@ type Props = {
   onUseScript: () => void
   onReport: () => void
   onHandover: () => void
+  /** 「一键发送」：审批回来了，把备好的那句话发出去。 */
+  onSendPending: () => void
+  /** 报备卡走到哪一步了（`等审批` / `等发送` / `已答复`）。 */
+  报备态: 报备态
+  /** 审批回来、还没发出去的那句话。只有「等发送」时有。 */
+  待发句?: ChatMessage
 }
 
 /**
@@ -18,7 +24,15 @@ type Props = {
  * 主卡随情况变。原「依据与边界」卡收进主卡的展开里，「工单草稿」卡并进报备的
  * 交接包。
  */
-export default function PrimerPanel({ session, onUseScript, onReport, onHandover }: Props) {
+export default function PrimerPanel({
+  session,
+  onUseScript,
+  onReport,
+  onHandover,
+  onSendPending,
+  报备态,
+  待发句,
+}: Props) {
   return (
     <aside className="flex w-[360px] shrink-0 flex-col border-l border-line bg-canvas">
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-line bg-panel pl-3">
@@ -53,8 +67,11 @@ export default function PrimerPanel({ session, onUseScript, onReport, onHandover
               onUseScript={onUseScript}
               onReport={onReport}
               onHandover={onHandover}
+              onSendPending={onSendPending}
               报备={session.报备}
               转交={session.转交}
+              报备态={报备态}
+              待发句={待发句}
             />
           ) : (
             <p className="rounded-md border border-line bg-panel px-3 py-4 text-center text-body text-ink-4">
