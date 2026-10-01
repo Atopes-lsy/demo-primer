@@ -595,6 +595,7 @@ def _判一条(
             出处=f"{r.table} · {r.row_id}" if r.row_id else r.table,
             摘要=r.content,
             用上=r.用上,
+            成分=r.成分,
         )
         for 源, 组 in 记录.记录.items()
         for r in 组

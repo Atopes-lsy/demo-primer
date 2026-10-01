@@ -46,7 +46,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..rules.koujing import 口径条目
 from ..rules.sources import 六源, 六源结果, 六源顺序, 源记录
-from .商品表 import 商品表
+from .商品表 import 商品表, 成分名
 
 if TYPE_CHECKING:
     # 只给类型检查器看。`app/检索` 是数据侧，运行时不依赖 HTTP 契约那一层
@@ -136,6 +136,9 @@ def _查商品属性表(会话: Session | None, 表: 商品表) -> tuple[源记�
             exists=True,
             table="商品属性表",
             row_id=商品.货号,
+            # 物质名走**另一条路**：`content` 是给人读的，这个是给 G3 比对用的。
+            # 少它的话，话术里「不含香精」这类断言在 G3 那儿就无从判（=不判）。
+            成分=成分名(表, 商品),
             content="\n".join(
                 (
                     f"商品名称：{商品.名称}",
