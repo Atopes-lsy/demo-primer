@@ -12,6 +12,7 @@
 换一份数据（比如赛题发新版本）就用环境变量：
 
     PRIMER_XLSX   业务数据.xlsx 的绝对路径
+    PRIMER_商品表  商品属性表.xlsx 的绝对路径
     PRIMER_CORS   额外放行的来源，JSON 数组，如 '["http://10.0.0.5:5173"]'
 """
 
@@ -36,6 +37,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 #: `app/rules/` 下多一层）。
 默认业务数据 = 仓库根 / "data" / "赛题 1：数据共情者-业务数据(1).xlsx"
 
+#: 商品属性表 —— 六源里 ① 的那份数据。
+#:
+#: **和 `默认业务数据` 是两个文件。** ① 不在业务数据 xlsx 里（那张表只有
+#: 数据说明／聊天记录／订单／五类工单这八张），它单独一份 `商品属性表_v7_定稿.xlsx`。
+#: 合并不了：定稿是分文件发的，谁都没权限把两张表并在一个工作簿里。
+#:
+#: 默认值同样是绝对路径，理由和上面那条一样 —— 见本模块的文件头。
+默认商品表 = 仓库根 / "data" / "商品属性表_v7_定稿.xlsx"
+
 #: 本地开发的来源一律放行，**端口不限**。
 #:
 #: 不写死 5173：Vite 的默认端口被占用时会自己往上找（5174、5175…），
@@ -53,6 +63,11 @@ class 配置(BaseSettings):
     业务数据路径: Path = Field(
         default=默认业务数据,
         validation_alias=AliasChoices("PRIMER_XLSX", "业务数据路径"),
+    )
+
+    商品表路径: Path = Field(
+        default=默认商品表,
+        validation_alias=AliasChoices("PRIMER_商品表", "商品表路径"),
     )
 
     CORS来源: list[str] = Field(
