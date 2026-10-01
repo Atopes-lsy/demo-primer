@@ -11,33 +11,37 @@ type Props = {
 }
 
 /**
- * 发送前确认条。
+ * 发送前确认 · 检查一（禁语）。
  *
  * 位置必须在输入框上方 —— 它校验的是客服正在打的那句话，放右侧面板会被忽略。
  * 平时隐藏，只在命中禁语时出现。
+ *
+ * **淡黄底，不是红框**（见 `ConflictBar`）。这一条管的是措辞：话说得没错，
+ * 只是有个词不能这么说。底色跟着语义走 —— 两条检查一个红一个黄，客服扫一眼
+ * 就知道这次是「换个说法」还是「这句不能发」。都用红的，第二条就没人当回事了。
  *
  * 措辞是「确认」不是「拦截」：保留［仍然发送］，最终决定权在客服手里，
  * 这是人机协同的底线。
  */
 export default function GuardBar({ hit, onReplace, onSendAnyway }: Props) {
   return (
-    <div className="border-t border-risk-line bg-risk-soft px-3 py-2">
-      <p className="flex items-start gap-1.5 text-body font-medium text-risk-ink">
+    <div className="border-t border-hold-line bg-hold-soft px-3 py-2">
+      <p className="flex items-start gap-1.5 text-body font-medium text-hold-ink">
         <CornerDownLeft size={12} className="mt-0.5 shrink-0" />
         <span>
           发送前确认：命中禁语「{hit.禁语}」（口径表 {hit.口径}）
         </span>
       </p>
 
-      <p className="mt-1 pl-[18px] text-body leading-relaxed text-risk-ink-2">
+      <p className="mt-1 pl-4.5 text-body leading-relaxed text-ink-2">
         建议改为「{hit.建议}」
       </p>
 
-      <div className="mt-2 flex gap-2 pl-[18px]">
+      <div className="mt-2 flex gap-2 pl-4.5">
         <button
           type="button"
           onClick={onReplace}
-          className="rounded border border-risk-line bg-panel px-2.5 py-1 text-body text-risk-ink hover:bg-risk-soft"
+          className="rounded border border-hold-line bg-panel px-2.5 py-1 text-body text-hold-ink hover:bg-hold-soft"
         >
           一键替换
         </button>

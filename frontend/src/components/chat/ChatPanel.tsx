@@ -1,5 +1,6 @@
 import { MessageSquare, MoreHorizontal, RefreshCw, SquareArrowOutUpRight } from 'lucide-react'
 
+import { 查事实 } from '../../data/事实'
 import { 查禁语 } from '../../data/koujing'
 import type { 剧本 } from '../../data/剧本'
 import type { 播放状态 } from '../../hooks/use播放器'
@@ -62,8 +63,13 @@ export default function ChatPanel({
 }: Props) {
   const draft = session?.草稿 ?? ''
 
-  // 每次渲染重新比对，而不是把结果存进状态 —— 客服改一个字，提示就该跟着变。
+  // 两条检查都是每次渲染现算，而不是把结果存进状态 —— 客服改一个字，提示就该
+  // 跟着变（也可能跟着收掉）。存进状态的话，改完还挂着旧的那一条。
+  //
+  // 两条管的事不一样，各查各的：禁语管措辞（`查禁语`），事实管这句话是真是假
+  // （`查事实`）。同一句可能两条都犯，那就两条都出。
   const guard = 查禁语(draft)
+  const 冲突 = 查事实(draft, session)
 
   const send = (text: string = draft) => {
     const trimmed = text.trim()
@@ -96,13 +102,17 @@ export default function ChatPanel({
             }
           />
           {/* 「仍然发送」和「发送」眼下是同一个调用 —— 区别在意图：这一下是客服看过
-              警示之后拍的板。留痕（记下谁在什么时候越过了哪条口径）留给后端做。 */}
+              警示之后拍的板。留痕（记下谁在什么时候越过了哪条口径）留给后端做。
+              两条检查共用这一个出口：越过哪一条都是同一个动作。 */}
           <Composer
             value={draft}
             onChange={onDraftChange}
             onSend={() => send()}
             guard={guard}
             onReplace={() => guard && onDraftChange(draft.replace(guard.禁语, guard.建议))}
+            冲突={冲突}
+            // 整句换掉，不是换词 —— 这句话本身是假的（见 `ConflictBar`）。
+            onFixConflict={() => 冲突 && onDraftChange(冲突.建议)}
             onSendAnyway={() => send()}
             round={session.本轮处置 ?? []}
           />
