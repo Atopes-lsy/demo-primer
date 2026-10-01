@@ -20,29 +20,9 @@ from app.llm.客户端 import LLM不可用
 from app.llm.拆主张 import 拆主张
 from app.llm.认口径 import 认口径
 from app.rules.koujing import 加载口径表
+from tests.假模型 import 假模型
 
 口径表 = 加载口径表().口径表
-
-
-def 假模型(*回答: str):
-    """一个按顺序吐答案的假模型，同时把收到的 prompt 记下来。
-
-    收一个可变的 `记录` 列表回来，用来断言「prompt 里到底写了什么」——
-    那是本模块唯一的产出，不看它在看什么，测的就只剩解析。
-    """
-    记录: list[tuple[str, str]] = []
-    序号 = 0
-
-    def 问(提示: str, 系统: str = "") -> str:
-        nonlocal 序号
-        记录.append((系统, 提示))
-        答案 = 回答[min(序号, len(回答) - 1)]
-        序号 += 1
-        if isinstance(答案, Exception):
-            raise 答案
-        return 答案
-
-    return 问, 记录
 
 
 # ══════════════════════════════════════════════════════════
