@@ -9,12 +9,13 @@ dependencies = [
   "uvicorn[standard]>=0.38",
   "pydantic>=2.12",
   "pydantic-settings>=2.8",
-  "sqlalchemy[asyncio]>=2.0.40",
-  "asyncpg>=0.30",
-  "pgvector>=0.4",
   # 一个 OpenAI 兼容 client 打通所有国内厂商：换模型只改 base_url + model。
   "openai>=2.6",
   "openpyxl>=3.1",
+  # 这里**故意没有** sqlalchemy／asyncpg／pgvector。
+  # 它们从步骤 1 起就挂在这儿，但全项目 0 次 import —— 六源是查表不是检索
+  # （① 商品属性表 20 行、② 口径表 20 条、④⑤⑥ 每会话各 1 条），
+  # 理由写在 `app/检索/__init__.py` 的文件头。留着会让人以为有个用不上的向量库。
 ]
 
 [project.optional-dependencies]
