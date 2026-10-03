@@ -29,7 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .api import deps, 判定, 路由
+from .api import deps, 判定, 动作, 路由
 from .配置 import 取配置
 
 日志 = logging.getLogger(__name__)
@@ -119,3 +119,4 @@ app = FastAPI(
 装CORS(app)
 app.include_router(路由.router)
 app.include_router(判定.router)
+app.include_router(动作.router)
