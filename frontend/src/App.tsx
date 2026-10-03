@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import ChatPanel from './components/chat/ChatPanel'
 import IconRail from './components/IconRail'
 import type { 报备态 } from './components/plugin/AdviceCard'
-import PrimerPanel from './components/plugin/PrimerPanel'
+import PrimerPanel, { type 兜底来源 } from './components/plugin/PrimerPanel'
 import SessionPanel from './components/session/SessionPanel'
 import {
   agent,
@@ -20,14 +20,14 @@ import {
   已入库条数,
   先例库基数,
   当前判定轮次,
-  演示今天,
   演示此刻,
   type 剧本 as 剧本类型,
   type 现场消息,
 } from './data/剧本'
 import { 合本轮处置, 合建议, 合顾客情况, 取判定, type 判定响应 } from './data/判定'
+import { 兜底单号, 记发送, 取交接包, type 交接包 } from './data/交接包'
 import { usePlayer } from './hooks/use播放器'
-import type { ChatMessage, Session } from './types'
+import type { ChatMessage, OutputKind, Session } from './types'
 
 /** 客服发出的消息。字段从会话最后一条消息沿用，只覆盖真正变化的部分。 */
 function buildAgentMessage(session: Session, text: string, 序号: number): ChatMessage {
@@ -57,28 +57,6 @@ function buildAgentMessage(session: Session, text: string, 序号: number): Chat
     关联订单号: session.订单?.订单号 ?? '',
     关联工单号: session.工单?.ticket.工单号 ?? '',
   }
-}
-
-/**
- * 报备单／交接单的号。
- *
- * 规格 §7 要求报备和转交都自动生成单号、客服零填写，所以这里本地拼一个
- * `BH20260929003` 形状的串。接了后端之后这个函数整个删掉，用接口返回值。
- *
- * **日期取的是剧本那一天（`演示今天`），不是 `new Date()`。** 演示整条时间线落在
- * 9/29，录制却在别的日子 —— 取真实时钟的话，屏幕上会并排出现「9/29 已逾期 2 天」
- * 和一张 `BH20261001…` 的单子。台下最容易看见的就是这种对不上。
- *
- * **序号不能从会话 ID 里抠数字**：早先的 ID 是 `S00005`，尾三位正好是序号；换成
- * `S_DEMO_A` 之后 `replace(/\D/g,'')` 得到空串，两位顾客会拿到同一个 `000`。
- * 现在按 ID 求个稳定的三位数 —— 它只负责让单号看着像单号，不承担唯一性
- * （真要唯一，那是接后端之后接口的事）。
- */
-function 生成单号(前缀: 'BH' | 'JJ', 会话ID: string): string {
-  const 序号 = String(
-    [...会话ID].reduce((和, c) => 和 + c.charCodeAt(0), 0) % 1000,
-  ).padStart(3, '0')
-  return `${前缀}${演示今天.replace(/-/g, '')}${序号}`
 }
 
 export default function App() {
@@ -117,18 +95,53 @@ export default function App() {
   const [判定表, set判定表] = useState<Record<string, Record<number, 判定响应>>>({})
 
   /**
-   * 判定接口答不上来（后端没起／超时）。**只用来在开发态留个痕迹**，见 `PrimerPanel`。
+   * 接口回来的那张交接包，按 `会话ID` 存。
+   *
+   * **不往 `Session` 上加字段。** 判定的产物就是这么放的（`判定表` 是
+   * `会话ID → 轮次` 的一张平行表），而且 `types/index.ts` 归接口线独占 ——
+   * 往 `Session` 上加一个 `交接包`，后端 `tests/test_schemas.py` 那条镜像断言
+   * 当场红（它要求两边的字段集**只差 `草稿` 一个**）。
+   *
+   * 一个会话只存一张：报备和转交在这个演示里是互斥的两条路，真同时发生时后一张
+   * 盖掉前一张，而右栏本来就只画得下一张。
    */
-  const [接口未连, set接口未连] = useState(false)
+  const [交接包表, set交接包表] = useState<Record<string, 交接包>>({})
 
   /**
-   * `GET /api/会话列表` 没答上来。**和 `接口未连` 分开存。**
+   * 判定接口答不上来（后端没起／超时）。判定是**一轮一问**的，所以它自己会恢复：
+   * 下一轮再问一次，答上来就灭掉。
+   */
+  const [判定未连, set判定未连] = useState(false)
+
+  /**
+   * `GET /api/会话列表` 没答上来。**和判定那个分开存。**
    *
    * 合成一个布尔的话，后一个成功的会把前一个失败的痕迹擦掉：会话列表拉失败了，
    * 左栏悄悄只剩两条演示会话，而屏幕上看不出少了一百多条 —— 那正是这个标记
-   * 要防的那种错。
+   * 要防的那种错。列表只拉一次，所以它一旦亮起来就不会自己灭。
    */
   const [列表未连, set列表未连] = useState(false)
+
+  /**
+   * 动作接口（报备／转交／发送）**没答上来过**的那些会话。
+   *
+   * **按会话存，不存一个全局布尔。** 全局的话，后一条会话成功了会把前一条的
+   * 痕迹擦掉 —— 那是 `列表未连` 那段注释说的同一件事，只是换了个方向；而这一条
+   * 更要紧：兜底造的那张单子**还在屏幕上摆着**，标记却写着「已连」。
+   *
+   * 同一个会话里下一次动作真打通了就灭掉：它答的是「这一屏的正路通没通」，
+   * 不是「历史上出过事没有」。
+   */
+  const [动作兜底, set动作兜底] = useState<Record<string, true>>({})
+
+  /**
+   * 后端**明确拒了**（404／409／400）的那句话。`undefined` = 没有。
+   *
+   * **和上面那三个分开。** 那三个是「后端没答上来，界面回落剧本」，这个是
+   * 「后端答了、说这件事办不了」—— 混在一起的话，一张被后端拒掉的单子会被
+   * 当成兜底正常演出来，而屏幕上那两个信号（兜底标记 ＋ 那张单子）看着都成立。
+   */
+  const [动作被拒, set动作被拒] = useState<string>()
 
   /**
    * 已经问过的 `会话ID-轮次`。
@@ -189,10 +202,10 @@ export default function App() {
     void 取判定(activeId, 轮, 演示此刻).then((答) => {
       if (!答) {
         已问过.current.delete(键)
-        set接口未连(true)
+        set判定未连(true)
         return
       }
-      set接口未连(false)
+      set判定未连(false)
       set判定表((prev) => ({
         ...prev,
         [activeId]: { ...prev[activeId], [轮]: 答 },
@@ -379,6 +392,20 @@ export default function App() {
       : undefined
 
   /**
+   * 这一屏哪几块是剧本兜的底，拼给右栏顶上那行常驻标记（见 `PrimerPanel.兜底`）。
+   *
+   * **顺序写死在这儿，不按出事的先后。** 标记只有一行小字，同一件事每次读到的
+   * 顺序都该一样 —— 不然它就成了每次都要重新读的东西，而它唯一的作用是扫一眼。
+   *
+   * `动作` 取当前会话那一条，不取全局：兜底造的那张单子是摆在**这一屏**上的，
+   * 换一条会话就该按那条会话的实际情况说话。
+   */
+  const 兜底: 兜底来源[] = []
+  if (判定未连) 兜底.push('判定')
+  if (列表未连) 兜底.push('会话列表')
+  if (动作兜底[activeId]) 兜底.push('动作')
+
+  /**
    * 切会话就把播放器归零。
    *
    * 归零放在这里而不是 `usePlayer` 的 effect 里：切会话是**这个点击**造成的，
@@ -390,9 +417,48 @@ export default function App() {
     播放.重置()
   }
 
-  /** 改一条会话。插件产出的一切状态（草稿、报备、转交）都落在会话上。 */
-  const patch = (fn: (s: Session) => Session) => {
-    setSessions((prev) => prev.map((s) => (s.会话ID === activeId ? fn(s) : s)))
+  /**
+   * 改**指定的**那条会话。插件产出的一切状态（草稿、报备、转交）都落在会话上。
+   *
+   * 为什么按钮那边要显式传 ID：三个动作按钮现在都要 `await` 一轮接口，回来时
+   * `activeId` 可能已经换人了。默认写当前那条的话，A 的报备单会落到 B 头上，
+   * 而屏幕上看着完全正常 —— 和这一单在防的其它几件事是同一个形状。
+   */
+  const 落一笔 = (会话ID: string, fn: (s: Session) => Session) => {
+    setSessions((prev) => prev.map((s) => (s.会话ID === 会话ID ? fn(s) : s)))
+  }
+
+  /** 改**当前**这条会话。不跨 `await` 的地方都用它。 */
+  const patch = (fn: (s: Session) => Session) => 落一笔(activeId, fn)
+
+  /**
+   * 这轮「客服说出去的那句话」兑现的是哪几条主张。**按 `输出` 挑，不按下标** ——
+   * 两边的下标不是一回事（见 `合本轮处置`）。
+   */
+  const 兑现的 = (输出: OutputKind): string[] =>
+    (active?.本轮处置 ?? []).filter((d) => d.输出 === 输出).map((d) => d.id)
+
+  /**
+   * 把这句发出去的话报给后端留痕（`POST /api/会话/{sid}/发送`）。
+   *
+   * **不挡着发送。** 话是客服真按下去了的，留痕是事后补的账 —— 那边慢、或者
+   * 干脆没起，都不该让这一句发不出去。所以这儿 fire-and-forget，只把结果记进
+   * 右栏顶上那行标记。
+   *
+   * **一条主张都没兑现时不打。** 普通会话（138 条真会话）右栏本来就没判过，
+   * `本轮处置` 是空的 —— 打了就是一次必然 409 的往返，还会把那句「还没判定过」
+   * 顶到屏幕上，而它跟客服刚做的这件事没有任何关系。
+   */
+  const 记一笔发送 = (话术: string, 输出: OutputKind) => {
+    const 编号 = 兑现的(输出)
+    if (!编号.length) return
+    void 记发送(activeId, 编号, 话术).then((果) => {
+      if (果.态 === '成') return
+      // `未连` 和 `后端说不` 分开记：前者是说「这一屏的正路没通」，后者是说
+      // 「后端不认这条话术兑现的主张」—— 两个的排查方向正好相反。
+      if (果.态 === '未连') set动作兜底((prev) => ({ ...prev, [activeId]: true }))
+      else set动作被拒(`发送没记上 —— ${果.说明}`)
+    })
   }
 
   /**
@@ -421,6 +487,7 @@ export default function App() {
       }))
       // 发出去就把草稿清掉，否则输入框里还挂着刚发的那句话。
       patch((s) => ({ ...s, 草稿: '' }))
+      记一笔发送(内容, '客服点发送')
       播放.继续()
       return
     }
@@ -435,6 +502,7 @@ export default function App() {
         最近时间: sent.发送时间.slice(5, 16),
       }
     })
+    记一笔发送(内容, '客服点发送')
   }
 
   /**
@@ -463,6 +531,9 @@ export default function App() {
       摘要: 待发[0].message_text,
       最近时间: 待发[0].发送时间.slice(5, 16),
     }))
+    // 这句是 ③报备 走完一圈发出去的 —— 所以兑现的是 `报备` 那几条主张，
+    // 不是客服手上那条（`兑现的` 按输出挑，正是为了把这两种分开）。
+    记一笔发送(待发[0].message_text, '报备')
     播放.继续()
   }
 
@@ -488,17 +559,57 @@ export default function App() {
     patch((s) => ({ ...s, 草稿: 话术 }))
   }
 
-  /** 主卡「一键报备」：对话还在客服手里，顾客无感知。 */
-  const handleReport = () => {
-    patch((s) => ({ ...s, 报备: { 等待分钟: 0, 工单号: 生成单号('BH', s.会话ID) } }))
+  /**
+   * 报备／转交都走这儿：**打接口，拿那张自动带全的交接包。**
+   *
+   * 三个态各走各的路（见 `动作结果`），分得清是这里唯一要做的事：
+   *
+   *   - **接口回了** → 整张包进 `交接包表`，单号用接口那个；
+   *   - **接口没答上来** → 本地拼个号（`兜底单号`），`动作兜底` 点亮这个会话，
+   *     整张包交给 `PrimerPanel` 那个 `?? 建交接包(...)` 兜出来。**这一条必须
+   *     能演完**（工单 §五 验收 4：把后端关掉，整条线再演一遍，且看得出是兜底）；
+   *   - **后端说不**（404／409） → **不造单子，也不往下走**。回落本地那张的话，
+   *     屏幕上会出现一张后端刚刚拒掉的单子，而它看着和真的一模一样。
+   *
+   * 两条造出单子的路**都要写 `session.报备`／`转交`**：`AdviceCard` 认它画报备
+   * 卡，兜底那条路的单号也是从那儿取的（`建交接包` 第 55 行）—— 不写，兜底当场失效。
+   */
+  const 走动作 = async (动作: '报备' | '转交') => {
+    const 会话ID = activeId // 先钉住：`await` 之后它可能已经换人了。
+    const 果 = await 取交接包(会话ID, 动作)
+
+    if (果.态 === '后端说不') {
+      set动作被拒(`${动作}没办成 —— ${果.说明}`)
+      return
+    }
+    set动作被拒(undefined)
+
+    const 单号 = 果.态 === '成' ? 果.值.单号 : 兜底单号(会话ID)
+    if (果.态 === '成') {
+      set交接包表((prev) => ({ ...prev, [会话ID]: 果.值 }))
+      set动作兜底((prev) => {
+        if (!prev[会话ID]) return prev // 没亮过就别造一个新对象。
+        const 其余 = { ...prev }
+        delete 其余[会话ID]
+        return 其余
+      })
+    } else {
+      set动作兜底((prev) => ({ ...prev, [会话ID]: true }))
+    }
+
+    落一笔(会话ID, (s) =>
+      动作 === '报备'
+        ? { ...s, 报备: { 等待分钟: 0, 工单号: 单号 } }
+        : { ...s, 转交: { 工单号: 单号 } },
+    )
     播放.继续()
   }
 
+  /** 主卡「一键报备」：对话还在客服手里，顾客无感知。 */
+  const handleReport = () => void 走动作('报备')
+
   /** 主卡「立即转交」：对话交出去，客服不再跟进。 */
-  const handleHandover = () => {
-    patch((s) => ({ ...s, 转交: { 工单号: 生成单号('JJ', s.会话ID) } }))
-    播放.继续()
-  }
+  const handleHandover = () => void 走动作('转交')
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -524,7 +635,10 @@ export default function App() {
         onSendPending={handleSendPending}
         报备态={报备态}
         待发句={待发句}
-        接口未连={接口未连 || 列表未连}
+        /* 接口回来的那张。拿不到时 `PrimerPanel` 自己回落 `建交接包` —— 工单 §一 拍 1.1 乙。 */
+        接口交接包={交接包表[activeId]}
+        兜底={兜底}
+        动作被拒={动作被拒}
         /* 判定只接了两条演示线，其余 138 条一次都没跑过 —— 见 `PrimerPanel.未判定`。 */
         未判定={!剧本}
       />
