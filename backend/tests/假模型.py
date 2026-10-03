@@ -16,6 +16,23 @@
 from __future__ import annotations
 
 from app.llm.客户端 import 问答函数
+from app.rules import permissions
+
+
+def 假认权限(主张: str) -> str | None:
+    """`模型位.认权限` 的假实现：**走关键词那条老路**，只把答案换成编号。
+
+    和 `假模型` 不是一类东西 —— 它不吐文本、也不记 prompt，因为它要顶掉的那个
+    位（`deps.模型位.认权限`）的形状是 `Callable[[str], str | None]`，
+    不是「问一句答一句」。
+
+    ⚠️ **它必须回编号，不能回 `None` 了事。** 恒回 `None` ＝ 模型说「认不出」，
+    第 2 层就一律判 `未列明`、继续第 3 层 —— 该 `报备`／`转交` 的主张会全部
+    变成 `AI直发`，而右栏上看着只是「去向和家长不一样」，不会报错。
+    走关键词的话，接这个位前后判出来的是同一个结果，测试才有对照。
+    """
+    条目 = permissions.认权限(主张)
+    return 条目.编号 if 条目 is not None else None
 
 
 def 假模型(*回答: str | Exception) -> tuple[问答函数, list[tuple[str, str]]]:

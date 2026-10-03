@@ -45,6 +45,7 @@ from app.data.装载器 import 装载器
 from app.llm.话术生成 import 不支持的去向, 生成结果
 from app.rules.pipeline import 输出类型
 from app.配置 import 取配置
+from tests.假模型 import 假认权限
 
 测试基地址 = "http://测试"
 
@@ -137,6 +138,12 @@ def 装了(真装: 装载器) -> Any:
         查六源=deps.取模型位().查六源,
         生成话术=_假生成话术,
         认诉求=_假认诉求,
+        # 第 2 层的认权限也换假的（走关键词那条老路）。**不能省这一格**：
+        # 省了就是真模型在位，这几条用例会开始打网络、结论随厂商采样漂。
+        # 也**不能喂恒回 `None` 的**：那等于每条主张都判「未列明」，
+        # A 第 2 轮那条会从 `报备` 变成 `AI直发`，而下面几条会以
+        # 「没有要报备的主张」的样子红 —— 看着像单号坏了。
+        认权限=假认权限,
     )
     yield
     main.app.dependency_overrides.clear()
