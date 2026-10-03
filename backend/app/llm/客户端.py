@@ -11,6 +11,25 @@
 **密钥只从环境变量读，不写进任何文件。** 这不是洁癖：这个仓库要交出去，
 密钥一旦进了代码或 `.env` 就是一次泄露，而它不会被测试发现。
 
+`话术生成` 有自己的一套（三个变量，各自回退到上面那份）
+=====================================================
+
+    PRIMER_LLM_MODEL_话术生成
+    PRIMER_LLM_BASE_URL_话术生成
+    PRIMER_LLM_KEY_话术生成
+
+2026-10-02 起，四个模型位里**只有 `话术生成` 能单独选型**（`docs/工单交接_给模型线_C.md`
+§三）。理由：那三个位干的是分类和切分，只有它是**写作文**；而且它一条主张一次、
+一稿最多 `话术生成.最多调用` 次，是花钱最多的那个。想去别家买文笔（或换成便宜货
+压成本），改这三个变量，另外三个位一个字不动。
+
+⚠️ **三个都不设时，行为和没有这套变量时逐字相同** —— 演示当天没人会去设它们，
+**没设的那条路就是演示走的那条路**，这条有 `tests/test_选型.py` 钉着。
+所以别把 `默认模型` 改成「话术生成专用」的什么东西。
+
+⚠️ 变量名带中文，是这个仓库的命名习惯（模型位就叫 `话术生成`）。**代价是
+Windows 的 `cmd.exe` 在非 UTF-8 代码页下不好设** —— 演示用的 Git Bash 没这个问题。
+
 真实调用 vs 假模型
 ==================
 
@@ -30,12 +49,21 @@ from openai import OpenAI
 #: 默认端点：阿里云百炼的 OpenAI 兼容模式。冒烟过 —— `qwen-plus` 打得通。
 默认地址 = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
-#: 默认模型。挑它的理由：够便宜、够快，而这两个模型位要的都是**分类**和
-#: **切分**，不是写作文。真上线换个大的，改环境变量就行。
+#: 默认模型。挑它的理由：够便宜、够快，而**除了 `话术生成` 之外的三个位**
+#: 要的都是**分类**和**切分**，不是写作文。真上线换个大的，改环境变量就行。
+#:
+#: ⚠️ **`话术生成` 也在用它 —— 这仍然是刻意的。** 它自己那套变量不设时
+#: 就落到这儿（见 `话术生成模型`）。「它单独可配」不等于「它默认换个模型」：
+#: 换个默认值会把没配过的地方的行为一起改掉，而那正是要避免的。
 默认模型 = "qwen-plus"
 
 #: 没设 `PRIMER_LLM_KEY` 时回头找这个 —— 环境里本来就有它。
 默认密钥变量 = "DASHSCOPE_API_KEY"
+
+#: `话术生成` 那套。三个变量各自回退到上面那份 —— 见模块文档串。
+话术生成模型变量 = "PRIMER_LLM_MODEL_话术生成"
+话术生成地址变量 = "PRIMER_LLM_BASE_URL_话术生成"
+话术生成密钥变量 = "PRIMER_LLM_KEY_话术生成"
 
 #: 「问一次」的形状：提示 ＋ 系统提示 → 模型回答的纯文本。
 #:
@@ -65,55 +93,109 @@ def 取模型() -> str:
     return os.environ.get("PRIMER_LLM_MODEL") or 默认模型
 
 
-@lru_cache(maxsize=1)
-def _客户端() -> OpenAI:
-    """client 单例。建一次就够 —— 它自带连接池，每问一次建一个会白白多握几次手。
+def 话术生成模型() -> str:
+    """`话术生成` 那份模型名。没单独设就跟着全局走。"""
+    return os.environ.get(话术生成模型变量) or 取模型()
+
+
+def 话术生成地址() -> str:
+    return os.environ.get(话术生成地址变量) or 取地址()
+
+
+def 话术生成密钥() -> str:
+    return os.environ.get(话术生成密钥变量) or 取密钥()
+
+
+@lru_cache(maxsize=8)
+def _客户端(地址: str, 密钥: str) -> OpenAI:
+    """client 单例，**按（地址，密钥）各一个**。
+
+    建一次就够 —— 它自带连接池，每问一次建一个会白白多握几次手。
+    缓存按参数分：`话术生成` 配了别的端点／密钥时要用另一个 client，
+    共用一个会把请求发到错的地址去（而那种错表现为「模型答得驴唇不对马嘴」，
+    不像一个连接错误）。
 
     `max_retries` 用 SDK 的默认值（2 次）。**不自己写重试**：SDK 那边退避和
     幂等判断都是现成的，自己叠一层的结果是重试次数相乘。
     """
-    密钥 = 取密钥()
     if not 密钥:
         raise LLM不可用(
             f"没读到密钥。设 PRIMER_LLM_KEY，或设 {默认密钥变量}（默认找它）。"
         )
-    return OpenAI(api_key=密钥, base_url=取地址())
+    return OpenAI(api_key=密钥, base_url=地址)
 
 
-def 问模型(提示: str, 系统: str = "") -> str:
-    """问一个来回，返回纯文本。"""
-    return _问(提示, 系统, 要JSON=False)
+def 问模型(
+    提示: str,
+    系统: str = "",
+    *,
+    模型: str | None = None,
+    地址: str | None = None,
+    密钥: str | None = None,
+) -> str:
+    """问一个来回，返回纯文本。
+
+    三个关键字参数都留 `None` ＝ 用全局那套（`取模型` / `取地址` / `取密钥`），
+    所以 `问答函数 = Callable[[str, str], str]` 这个形状没变 —— 两参数的
+    调用和以前逐字相同，`假模型` 照样顶得上。
+
+    **要分家的位（目前只有 `话术生成`）从这里传自己那套。** 三样要一起给：
+    `_客户端` 是按（地址，密钥）缓存的，只换密钥不换地址等于拿别家的钥匙
+    去敲这家的门，报出来的是「密钥无效」，离真正的错很远。
+    """
+    return _问(提示, 系统, 要JSON=False, 模型=模型, 地址=地址, 密钥=密钥)
 
 
-def 问JSON(提示: str, 系统: str = "") -> str:
+def 问JSON(
+    提示: str,
+    系统: str = "",
+    *,
+    模型: str | None = None,
+    地址: str | None = None,
+    密钥: str | None = None,
+) -> str:
     """同上，但让模型**只回一个 JSON 对象**。
 
     `response_format={'type': 'json_object'}` 是这个端点实际支持的（冒烟过）。
     它约束的是「回一个合法 JSON」而不是「回我们要的字段」——
     字段对不对由调用方自己校验，见 `拆主张._解析`。
     """
-    return _问(提示, 系统, 要JSON=True)
+    return _问(提示, 系统, 要JSON=True, 模型=模型, 地址=地址, 密钥=密钥)
 
 
-def _问(提示: str, 系统: str, *, 要JSON: bool) -> str:
+def _问(
+    提示: str,
+    系统: str,
+    *,
+    要JSON: bool,
+    模型: str | None = None,
+    地址: str | None = None,
+    密钥: str | None = None,
+) -> str:
+    用模型 = 模型 or 取模型()
+    用地址 = 地址 or 取地址()
     消息: list[dict[str, str]] = []
     if 系统:
         消息.append({"role": "system", "content": 系统})
     消息.append({"role": "user", "content": 提示})
 
     try:
-        回应 = _客户端().chat.completions.create(
-            model=取模型(),
+        回应 = _客户端(用地址, 密钥 or 取密钥()).chat.completions.create(
+            model=用模型,
             messages=消息,  # type: ignore[arg-type]
-            # **temperature=0：这两个位置要的是稳定，不是文采。**
+            # **temperature=0：这几个位置要的都是稳定，不是文采** ——
+            # 分类、切分自不必说；`话术生成` 也是（它写的是客服话术，
+            # 要的是别跑偏，不是发挥）。
+            #
             # 它不是「确定性」的保证（厂商侧的采样和批处理照样能让两次不同），
-            # 只是把随机性压到最低 —— 识别和切分没有任何需要发挥的地方。
+            # 只是把随机性压到最低。2026-10-02 实测：同一批 8 条各跑两次，
+            # 结果逐条一致 —— **是观察，不是承诺**。
             temperature=0,
             **({"response_format": {"type": "json_object"}} if 要JSON else {}),
         )
     except LLM不可用:
         raise
     except Exception as 错:  # noqa: BLE001 —— 见 LLM不可用 的文档串
-        raise LLM不可用(f"问 {取模型()} 失败：{错}") from 错
+        raise LLM不可用(f"问 {用模型} 失败：{错}") from 错
 
     return 回应.choices[0].message.content or ""
