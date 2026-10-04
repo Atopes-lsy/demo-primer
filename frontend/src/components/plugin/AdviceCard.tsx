@@ -130,6 +130,54 @@ function EvidenceList({ advice }: { advice: Advice }) {
 }
 
 /**
+ * 已代发清单 —— 本轮 AI 已经以客服名义发出去的话。
+ *
+ * 名字是英文的，理由同 `EvidenceList`（React 不认中文开头的组件）。
+ *
+ * # 为什么默认展开，而底下那块依据默认折叠
+ *
+ * 两块要回答的不是一个问题。依据是**客服想追的时候**才去看的（他得先起疑）；
+ * 「有句话已经用你的名义发出去了」是**他必须知道、而且不知道自己不知道**的
+ * 那类事 —— 折叠起来就等于没做。它只在真有代发时出现，不会长期占地方。
+ *
+ * 不展开的代价有具体形状：顾客下一句回「你刚才不是说可以退吗」，
+ * 客服这边翻遍右栏找不到自己说过那句。聊天区的绿气泡也标了署名，
+ * 但气泡会随着对话滚走（`types/index.ts:417`）。
+ *
+ * # 为什么用 `ai-*` 那组绿
+ *
+ * 聊天气泡里的 AI 代发、气泡下面那行署名、`本轮处置` 里的「AI直发」都是这个色。
+ * 四处说的是同一件事（这话不是你打的），颜色就该是同一种。
+ */
+function SentList({ 已代发 }: { 已代发: NonNullable<Advice['已代发']> }) {
+  return (
+    <div className="border-t border-ai-line bg-ai-soft px-3 py-2">
+      <p className="text-note font-medium text-ai-ink">已代发 · 以你的名义</p>
+
+      {已代发.map((条, i) => (
+        // 内容当 key 的一部分：同一个会话里两条代发话术撞内容的情况没有，
+        // 但下标不能当唯一依据（列表会随轮次整块换）。
+        <div key={`${i}-${条.内容}`} className="mt-1.5">
+          <p className="rounded border border-line-soft bg-canvas px-2 py-2 text-body leading-relaxed text-ink">
+            {条.内容}
+          </p>
+          {/* 署名原样出，**不加前缀** —— 它自己就写着「Primer 自动发送」，
+              和聊天区那行是同一个字符串（`MessageList` 也给它加了 ◆）。 */}
+          <p className="mt-1 text-note text-ai-ink-2">◆ {条.署名}</p>
+          {/* 这一句引的是哪几条。和底下依据清单一**不是**一回事：
+              底下那份是「本轮六源查到了什么」（`N/6` 那个分母），
+              这份是「这一句话引了哪几条」。别把两块并成一个
+              （`api/证据.py` 的模块文档串专门写了为什么）。 */}
+          <p className="mt-0.5 text-note leading-relaxed text-ink-4">
+            {条.依据.map((e) => `${e.序号} ${e.出处}`).join('　')}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
  * 「Primer 建议」主卡 —— 右栏里随情况变的那一块。
  *
  * 一轮可能拆出多条主张、产出不同输出，这里只显示最高态；其余的在输入框下方
@@ -280,6 +328,11 @@ export default function AdviceCard({
           </div>
         ) : null}
       </div>
+
+      {/* 卡级区块，**和三个形态并排**，不塞进任何一个里：第四步（需要话术）
+          和第七步（需要授权）都带 `已代发`，将来转交那一轮也一样 ——
+          「AI 替你说了句话」这件事跟这一轮判成哪种输出没关系。 */}
+      {advice.已代发?.length ? <SentList 已代发={advice.已代发} /> : null}
 
       <EvidenceList advice={advice} />
     </section>
