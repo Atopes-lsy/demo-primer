@@ -15,23 +15,31 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from app.llm.客户端 import 问答函数
 from app.rules import permissions
+from app.rules.permissions import 权限条目
 
 
-def 假认权限(主张: str) -> str | None:
+def 假认权限(主张: str, 权限矩阵: Sequence[权限条目]) -> str | None:
     """`模型位.认权限` 的假实现：**走关键词那条老路**，只把答案换成编号。
 
     和 `假模型` 不是一类东西 —— 它不吐文本、也不记 prompt，因为它要顶掉的那个
-    位（`deps.模型位.认权限`）的形状是 `Callable[[str], str | None]`，
-    不是「问一句答一句」。
+    位（`deps.模型位.认权限`）的形状是
+    `Callable[[str, Sequence[权限条目]], str | None]`，不是「问一句答一句」。
+
+    ⚠️ **矩阵那一格必须用起来，不能收下就丢。** 它就是本轮的活矩阵，真模型
+    也是**在收到的这张表里挑**（`llm/认权限.认权限`）；收下不看、转头去认全表，
+    假实现就比真实现宽松 —— `E05` 会在 H3 不在的回合被它认出来，而真链路
+    那会儿根本看不见这一行。见 `app/rules/permissions._认到条目`。
 
     ⚠️ **它必须回编号，不能回 `None` 了事。** 恒回 `None` ＝ 模型说「认不出」，
     第 2 层就一律判 `未列明`、继续第 3 层 —— 该 `报备`／`转交` 的主张会全部
     变成 `AI直发`，而右栏上看着只是「去向和家长不一样」，不会报错。
     走关键词的话，接这个位前后判出来的是同一个结果，测试才有对照。
     """
-    条目 = permissions.认权限(主张)
+    条目 = permissions.认权限(主张, 权限矩阵)
     return 条目.编号 if 条目 is not None else None
 
 
