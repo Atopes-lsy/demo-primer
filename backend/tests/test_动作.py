@@ -45,7 +45,7 @@ from app.data.装载器 import 装载器
 from app.llm.话术生成 import 不支持的去向, 生成结果
 from app.rules.pipeline import 输出类型
 from app.配置 import 取配置
-from tests.假模型 import 假认权限
+from tests.假模型 import 假认权限, 假拆需求
 
 测试基地址 = "http://测试"
 
@@ -144,6 +144,8 @@ def 装了(真装: 装载器) -> Any:
         # A 第 2 轮那条会从 `报备` 变成 `AI直发`，而下面几条会以
         # 「没有要报备的主张」的样子红 —— 看着像单号坏了。
         认权限=假认权限,
+        # 第七个位（`拆需求`）在这条路上不该被叫到 —— 见 `假模型.假拆需求`。
+        拆需求=假拆需求,
     )
     yield
     main.app.dependency_overrides.clear()
