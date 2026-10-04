@@ -17,6 +17,20 @@ rem vite binds ::1 (IPv6); over IPv4 the browser only says "connection refused".
 
 cd /d "%~dp0"
 
+rem -- Local, untracked override -----------------------------------------------
+rem   env.local.bat holds THIS machine's own values -- the LLM key above all.
+rem   Copy env.local.bat.example to env.local.bat and paste the key in.
+rem   It has to come BEFORE the two start lines: they inherit this shell's env.
+rem   Absent == exactly the old behaviour, key from DASHSCOPE_API_KEY.
+rem   Note the ASCII filename: a Chinese one written here would be mis-decoded
+rem   (see NOTE 1) and the test below would silently be false.
+if exist "%~dp0env.local.bat" (
+  call "%~dp0env.local.bat"
+  echo   [local] env.local.bat applied
+) else (
+  echo   [local] no env.local.bat -- keys come from the environment
+)
+
 start "Primer backend :8000" /D "%~dp0backend" cmd /k "chcp 65001 >nul && set PYTHONIOENCODING=utf-8 && .venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000"
 start "Primer frontend :5173" /D "%~dp0frontend" cmd /k "chcp 65001 >nul && npm run dev"
 

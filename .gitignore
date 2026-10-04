@@ -14,6 +14,10 @@ __pycache__/
 .env
 .env.local
 
+# 本地启动器的覆盖文件 —— 模板 env.local.bat.example 是跟踪的，自己复制一份填 key，
+# 填好的那份不跟踪。见 启动.bat 里那段注释。
+env.local.bat
+
 # 编辑器 / 系统
 .vscode/
 .idea/
