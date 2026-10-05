@@ -259,6 +259,8 @@ def _读库(路径: Path | None = None) -> tuple[list[先例], str]:
             )
             for x in 原["条目"]
         ]
+    except FileNotFoundError:
+        return [], ""  # 还没建库 —— 常态，不出声
     except Exception as 错:  # noqa: BLE001 —— 见文档串
         日志.warning("先例库读不了，当空库：%r", 错)
         return [], ""

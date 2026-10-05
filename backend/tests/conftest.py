@@ -22,9 +22,16 @@ from pathlib import Path
 import pytest
 
 
+#: 测试期把库挪到一个**不存在**的文件上 —— 库读不到，`召回先例` 会在发请求之前返回。
+#: 用固定路径而不是 `tmp_path`：`tmp_path` 给每条用例建一个目录，720 条要多花 ~5s。
+#: 这条文件**永远不该被创建** —— 真被创建了，下面那句 assert 会让它当场炸出来。
+_测试库路径 = Path(__file__).parent / "_先例库_测试里不存在.json"
+
+
 @pytest.fixture(autouse=True)
-def _先例库空(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def _先例库空(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.检索 import 先例库
 
-    monkeypatch.setattr(先例库, "库路径", tmp_path / "先例库_测试里不存在.json")
+    assert not _测试库路径.exists(), "测试库路径被创建了 —— 有测试拿默认路径写了盘"
+    monkeypatch.setattr(先例库, "库路径", _测试库路径)
     先例库.清空()
