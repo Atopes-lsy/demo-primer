@@ -13,11 +13,24 @@
 
 要测先例库自己的测试，在**测试体里**再
 `monkeypatch.setattr(先例库, "库路径", 真路径)` —— 后设的生效。
+
+# 另一条闸门：默认嵌入被换成**一调就抛**的桩
+
+上面那条 fixture 只管「库读不到」这一种短路。库读得到的时候（测试自己写了库
+文件、或者哪条路顺手 `回写` 了一句长话术）`召回先例`／`回写` 会走到**嵌入**那
+一步，而它的默认参数是真的 `嵌文本` —— 这台机器上 `DASHSCOPE_API_KEY` 非空，
+走到就是**真花钱、真看网络脸色**。今天全绿只是因为假话术都 ≤ 16 字、死在
+`_该丢` 那 20 字的长度门槛上：**4 个字的余量，不是一道闸门**。
+
+所以 `_默认嵌入拦住` 把两个函数的默认嵌入都换成桩。拦下来不出声（两个调用方
+都把异常吞了），要的就是这个 —— 目标是**没有测试能花到钱或依赖网络**，不是
+让它们喊出来。
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -35,3 +48,31 @@ def _先例库空(monkeypatch: pytest.MonkeyPatch) -> None:
     assert not _测试库路径.exists(), "测试库路径被创建了 —— 有测试拿默认路径写了盘"
     monkeypatch.setattr(先例库, "库路径", _测试库路径)
     先例库.清空()
+
+
+def _拦嵌入() -> Any:
+    """默认嵌入的替身。**一被调用就抛**（见 `_默认嵌入拦住` 的文档串）。"""
+
+    def 拦(*_: object, **__: object) -> Any:
+        raise RuntimeError("测试里伸向了默认嵌入 —— 见 conftest 的文档串")
+
+    return 拦
+
+
+@pytest.fixture(autouse=True)
+def _默认嵌入拦住(monkeypatch: pytest.MonkeyPatch) -> None:
+    """把 `召回先例`／`回写` 的**默认**嵌入换成桩，测试里一个包都不发出去。
+
+    ⚠️ **把手只有 `__kwdefaults__`。** `嵌: 嵌入函数 = 嵌文本` 是**定义时**绑定
+    的，事后改 `先例库.嵌文本` 一点用都没有（函数默认参数不会跟着变名）；
+    两个 `嵌` 又都是关键字参数，所以它们的默认值住在 `__kwdefaults__` 这个
+    dict 里。**是 dict 就得用 `setitem`** —— `monkeypatch.setattr` 对 dict
+    会抛 `AttributeError`（`getattr(dict, "嵌")` 拿不到）。
+
+    显式传了 `嵌=` 的测试不受影响：这只改默认值。
+    """
+    from app.检索 import 先例库
+
+    拦 = _拦嵌入()
+    monkeypatch.setitem(先例库.回写.__kwdefaults__, "嵌", 拦)
+    monkeypatch.setitem(先例库.召回先例.__kwdefaults__, "嵌", 拦)
