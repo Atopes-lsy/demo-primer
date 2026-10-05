@@ -467,3 +467,96 @@ def test_系统提示改成了范本加贴近实质() -> None:
 
     assert "只学语气和节奏，事实一个都不许搬" not in 系统提示
     assert "数字" in 系统提示 and "依据" in 系统提示
+
+
+# ── 回写（spec §六）──────────────────────────────────────
+
+#: 26 字，稳稳过 `_该丢` 那 20 字的门槛（短答法会被长度那道先拦下，
+#: 那几条测试就成了在测 `_该丢` 而不是在测回写）。**不许改短。**
+_好答法 = "亲，您把货寄回来就行，这边收到之后马上给您办退款哈~"
+
+
+def _假嵌(文本们):
+    return [[1.0, 0.0] for _ in 文本们]
+
+
+def test_回写正常写进去并能在本次进程里召回(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """**嵌一次并追加进内存索引** —— 不嵌的话那条在本次进程里永远召不回，
+    回写就只剩计数意义。"""
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    assert 先例库.回写("快递到哪了", _好答法, "S1", 2, 嵌=_假嵌) is True
+    assert 先例库.取库()[-1].答法 == _好答法
+    先例库.清空()
+
+
+def test_回写有门槛_该丢的写不进去(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    assert 先例库.回写("快递到哪了", "亲亲稍等哦", "S1", 2, 嵌=_假嵌) is False
+    assert 先例库.回写("快递到哪了", "亲，48 小时内给您补发哈~", "S1", 2, 嵌=_假嵌) is False
+    assert 先例库.回写("", _好答法, "S1", 2, 嵌=_假嵌) is False
+    assert 先例库.取库() == []
+    先例库.清空()
+
+
+def test_回写同一轮只进一条(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """判定会被重问（拖回重放、`看到消息数` 变了）—— 没有这条键库会肿。"""
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    assert 先例库.回写("快递到哪了", _好答法, "S1", 2, 嵌=_假嵌) is True
+    # 第二句要**自己也够格**（过得了 `_该丢`、和第一句不克隆，实测克隆率 0.09），
+    # 不然它被挡的原因就不是幂等键了，这条测试也就没验到东西
+    assert 先例库.回写("快递到哪了", "亲，您方便的时候查一下余额哈，到账了这边就不打扰您啦~", "S1", 2, 嵌=_假嵌) is False
+    assert len(先例库.取库()) == 1
+    先例库.清空()
+
+
+def test_回写跟库里的重复就不写(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """情境余弦 ≥ 0.95 —— 同一件事，库里已经有了。"""
+    先例库.清空()
+    路径 = _写(tmp_path, [先例库.先例("快递到哪了", "亲，包裹到苏州了~", "S9", 向量=(1.0, 0.0))])
+    monkeypatch.setattr(先例库, "库路径", 路径)
+    assert 先例库.回写("快递到哪了", _好答法, "S1", 2, 嵌=_假嵌) is False
+    先例库.清空()
+
+
+def test_回写嵌不动就不写(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    先例库.清空()
+    出 = 先例库.回写("快递到哪了", _好答法, "S1", 2, 嵌=lambda 文本们: (_ for _ in ()).throw(RuntimeError("断网")))
+    assert 出 is False
+    先例库.清空()
+
+
+def test_回写把多行情境压平(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    先例库.回写("这个精华里有乙醇吗\n我脸过敏了", _好答法, "S1", 2, 嵌=_假嵌)
+    assert 先例库.取库()[-1].情境 == "这个精华里有乙醇吗 我脸过敏了"
+    先例库.清空()
+
+
+def test_回写把多行答法也压平(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """**答法是唯一一条不经过取材那半边 `_压平` 的进库路。**
+
+    取材那条路（`_成条`）自己压过一次，回写这条路的答法是模型当轮刚写的那稿，
+    一个换行原样进来 —— 两条路只靠 `回写` 里那一句 `_压平(答法)` 撑着。
+    少了它，答法带换行就进了库，而召回把它逐行拼进 prompt 第 6 块
+    （`"- " ＋ 句`）时会把那个列表拼散 —— **没有任何别的测试会因此变红**。
+    """
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    多行 = "亲，您把货寄回来就行\n这边收到之后马上给您办退款哈~"
+    assert 先例库.回写("这个精华里有乙醇吗", 多行, "S1", 2, 嵌=_假嵌) is True
+    assert 先例库.取库()[-1].答法 == "亲，您把货寄回来就行 这边收到之后马上给您办退款哈~"
+    先例库.清空()
+
+
+def test_清空连回写表一起清(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """（Task 5 说好挪到这儿的那条。）"""
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", tmp_path / "不存在.json")
+    先例库.回写("快递到哪了", _好答法, "S1", 2, 嵌=_假嵌)
+    先例库.清空()
+    assert 先例库._回写表 == {}

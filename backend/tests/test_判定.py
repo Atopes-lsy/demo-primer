@@ -34,7 +34,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app import main
-from app.api import deps
+from app.api import deps, schemas
 from app.api.判定 import 整会话顾客情况
 from app.data import 装配
 from app.data.装载器 import 聊天记录表, 装载器
@@ -1837,3 +1837,86 @@ async def test_没触发还是不给卡() -> None:
     assert [t["编号"] for t in 体["触发"]] == []
     assert 体["主卡"] is None
     assert 体["本轮处置"] == []
+
+
+# ══════════════════════════════════════════════════════════
+# 十四 · 回写先例库（spec §六）
+# ══════════════════════════════════════════════════════════
+
+
+def test_该回写条_正常收尾才写() -> None:
+    from app.api.判定 import 该回写条
+
+    一个命中 = schemas.闸门命中(闸门="G1", 名称="禁语", 严重度="高", 详情="命中禁语「保证100%正品」", 证据=["保证100%正品"], 建议="改为「正品保障」", 可重生成=True, 降级去向="")
+
+    def 造响应(*, 处置们, 闸门=(), 主卡形态=None):
+        return schemas.判定响应(
+            会话ID="S1", 轮次=1, 顾客情况=[], 安全事件=[], 触发=[],
+            本轮处置=[
+                schemas.Disposition(
+                    id=f"S1-1-{i}", 轮次=1, 主张=f"主张{i}", 输出=输出, 说明=None,
+                    涉及个体差异=False, 需边界句=False, 层="第1层",
+                    权限去向="", 交接分类="", 话术=话术,
+                )
+                for i, (输出, 话术) in enumerate(处置们)
+            ],
+            主卡=None if 主卡形态 is None else schemas.Advice(
+                形态=主卡形态, 判断="", 标题="", 说明=[], 依据=[]
+            ),
+            闸门=list(闸门),
+        )
+
+    assert 该回写条(造响应(处置们=[(输出类型.AI直发, "亲，答一")])) == "亲，答一"
+    # 两条取最长的那个（与取材「取最长」同构）
+    assert 该回写条(造响应(处置们=[(输出类型.AI直发, "短"), (输出类型.客服点发送, "长一些的答复")])) == "长一些的答复"
+    # 四条条件：闸门非空／有 转交／有 报备／形态有风险，一条都不写
+    assert 该回写条(造响应(处置们=[(输出类型.AI直发, "亲，答一")], 闸门=[一个命中])) is None
+    assert 该回写条(造响应(处置们=[(输出类型.AI直发, "亲，答一"), (输出类型.转交, None)])) is None
+    assert 该回写条(造响应(处置们=[(输出类型.报备, "安抚话术")])) is None
+    assert 该回写条(造响应(处置们=[(输出类型.客服点发送, "亲，答一")], 主卡形态="有风险")) is None
+    # 本轮没主张 / 有话术是空的
+    assert 该回写条(造响应(处置们=[])) is None
+    assert 该回写条(造响应(处置们=[(输出类型.AI直发, None)])) is None
+
+
+@pytest.mark.usefixtures("装了")
+async def test_判完会回写先例库(monkeypatch: pytest.MonkeyPatch) -> None:
+    """**这条钉的是钩子接没接上**（`回写` 的内部逻辑归 `test_先例库.py`）。
+
+    用记一笔的替身而不是真 `回写`：真回写要密钥要网络，而这里要回答的是
+    「判定跑完有没有伸手去写、拿的是哪一段文字」。
+    """
+    from app.检索 import 先例库
+
+    记下: list[tuple] = []
+    monkeypatch.setattr(先例库, "回写", lambda *a, **k: 记下.append(a) or True)
+
+    await 判("S_DEMO_A", 轮次=1)
+    assert 记下, "判定跑完没伸手去写先例库"
+    # 四个参数：情境（**买家原话**）、答法、会话ID、轮次
+    情境, 答法, 会话ID, 轮次 = 记下[0]
+    assert (会话ID, 轮次) == ("S_DEMO_A", 1)
+    assert 情境.strip() and 答法.strip(), "情境该是买家原话，答法该是那一稿"
+    # ⚠️ `.strip()` 分不出「买家原话」和「模型拆出来的主张」—— 两者都是非空串。
+    # 拿第 1 轮那句话钉死，钩子哪天改成传 `主张` 才会红。
+    assert 情境 == "你好，这个精华里有乙醇吗，我怀孕了能用吗", 情境
+
+
+@pytest.mark.usefixtures("装了")
+async def test_线二转交那轮不回写(monkeypatch: pytest.MonkeyPatch) -> None:
+    """线二整轮是转交 —— 四条条件天然不满足，一句都不写。
+
+    它挡的不是「转交」这一条本身（转交的 `Disposition.话术` 本来就是 `None`，
+    见 `_话术们` 的文档串），而是**钩子伸手去够别处的文字**：`主卡.话术`
+    在有风险那一轮是有的（转交话术），谁把回写的取材从「处置话术」挪到
+    「主卡话术」，这条就红。
+    """
+    from app.检索 import 先例库
+
+    记下: list[tuple] = []
+    monkeypatch.setattr(先例库, "回写", lambda *a, **k: 记下.append(a) or True)
+
+    体 = await 判("S_DEMO_B")
+    assert 体["主卡"] is not None and 体["主卡"]["形态"] == "有风险", "先确认这一轮真的是转交"
+    assert (体["主卡"]["话术"] or "").strip(), "主卡上确实有话术 —— 所以「不写」不是没东西可写"
+    assert 记下 == []
