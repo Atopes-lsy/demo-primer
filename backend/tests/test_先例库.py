@@ -606,6 +606,7 @@ def test_默认嵌入在测试里被拦住(tmp_path, monkeypatch: pytest.MonkeyP
     """
     桩 = 先例库.回写.__kwdefaults__["嵌"]
     assert 桩 is 先例库.召回先例.__kwdefaults__["嵌"], "两个默认该是同一个桩"
+    assert 桩 is 先例库.嵌条目.__kwdefaults__["嵌"], "嵌条目那个默认也得是桩（Task 9 补的）"
     assert 桩 is not 先例库.嵌文本
     with pytest.raises(RuntimeError):
         桩(["一段文本"])
