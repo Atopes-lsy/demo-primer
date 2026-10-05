@@ -90,3 +90,22 @@ def test_库里没有带单位数字没有禁语没有没凭据的已发生动�
         or guards.已发生动作(t.答法)
     ]
     assert 漏的 == []
+
+
+def test_重建空取材不写库(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """**空取材不写盘** —— `_重建` 是唯一会碰 `data/先例库.json` 的东西，
+    而它的输入是「哪个工作簿」。指错一份就该什么都不做，不是把好库覆盖成空库。
+
+    **这条不发任何请求**：空取材会在 `嵌条目` **之前**早返回，
+    所以连默认嵌入都走不到（何况 conftest 还把它换成了桩）。
+    """
+    目标 = tmp_path / "库.json"
+    目标.write_text('{"版本": 1, "嵌入模型": "x", "条目": [1, 2, 3]}', encoding="utf-8")
+    改前 = 目标.read_bytes()
+
+    monkeypatch.setattr(先例库, "库路径", 目标)
+    monkeypatch.setattr(先例库, "从聊天记录取材", lambda 表: ())
+    先例库.清空()
+
+    assert 先例库._重建() == 0
+    assert 目标.read_bytes() == 改前, "空取材把库写了 —— 那道闸门没拦住"
