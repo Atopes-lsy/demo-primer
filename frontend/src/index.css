@@ -39,20 +39,20 @@
 
   /* 输出态功能色。只有三种状态用得上，不参与整体换肤。
      AI绿 = 输出① 自动发送；报备琥珀 = 输出③；转交红 = 输出④ 与风险提示。 */
-  --color-ai-soft: #eef7f1;
-  --color-ai-line: #b4d6c1;
-  --color-ai-ink: #1f5133;
-  --color-ai-ink-2: #6e9b7e;
+  --color-ai-soft: #eff6f1;
+  --color-ai-line: #c8ddd1;
+  --color-ai-ink: #315f4b;
+  --color-ai-ink-2: #6f887b;
 
-  --color-hold: #b45309;
-  --color-hold-soft: #fdf3ea;
-  --color-hold-line: #f0dcc4;
-  --color-hold-ink: #9a5b12;
+  --color-hold: #a65220;
+  --color-hold-soft: #fcf2e8;
+  --color-hold-line: #e7c7af;
+  --color-hold-ink: #a65220;
 
-  --color-risk-soft: #fdf3f2;
-  --color-risk-line: #d4887f;
-  --color-risk-ink: #8e2b20;
-  --color-risk-ink-2: #a0554c;
+  --color-risk-soft: #fcf0ee;
+  --color-risk-line: #dfb5b1;
+  --color-risk-ink: #ac443d;
+  --color-risk-ink-2: #8f625f;
 
   /* ── 字号 ──────────────────────────────────────────────
      四档。改这里全站生效。
