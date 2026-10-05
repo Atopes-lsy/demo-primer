@@ -418,3 +418,27 @@ def 回写(
         库.append(条)
         _回写表[(会话ID, 轮次)] = 条
     return True
+
+
+# ── 建库入口 ──────────────────────────────────────────────
+
+
+def _重建() -> int:
+    """取材 → 嵌 → 去冗 → 写库。**跑一次要 180 次嵌入调用**（18 个请求），
+    只在素材或嵌入模型变了才跑。"""
+    from ..配置 import 取配置
+    from ..data.装载器 import 读工作簿
+
+    表 = 读工作簿(取配置().业务数据路径)
+    粗 = 从聊天记录取材(表)
+    细 = 去冗(嵌条目(粗))
+    写库(细, 嵌入模型=先例库模型())
+    print(f"取材 {len(粗)} 条 → 去冗 {len(细)} 条 → {库路径}")
+    return len(细)
+
+
+if __name__ == "__main__":
+    if "--重建" in sys.argv:
+        raise SystemExit(0 if _重建() else 1)
+    print("用法：python -m app.检索.先例库 --重建", file=sys.stderr)
+    raise SystemExit(2)
