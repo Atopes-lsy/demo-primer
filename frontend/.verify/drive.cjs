@@ -769,16 +769,30 @@ var \u7EBF\u4E00\u5267\u672C = {
             \u6743\u9650\u53BB\u5411: "\u672A\u5217\u660E",
             \u4EA4\u63A5\u5206\u7C7B: ""
           },
+          // ⚠️ **这一条的 `轮次` 是 2，不是 1。** 它是**第 2 轮**判出来的
+          // （顾客第二句「我上次那个赠品还没给我发呢」），只是和上一轮那两条
+          // 攒在同一屏上（`判定.合本轮处置` 的「为什么要跨轮攒」）。
+          // 写 1 的后果不在这一屏：`App.兑现的` 按 `d.轮次 === 用哪个轮次()` 挑，
+          // 挑不到就成了「这一轮没有报备主张」—— ［一键发送］点下去**不报留痕**，
+          // 而屏幕上一切正常。id 跟着轮次走，和接口同形（`${会话ID}-${轮次}-${序号}`）。
+          //
+          // ⚠️ **`层` 是 `第2层`，`权限去向` 是 `报备` —— 不是 `硬触发` / 空串。**
+          // 2026-10-01 工单 A §2.1 拍的是「H3 不短路，只提示」，所以逾期不再把
+          // 整轮冻在硬触发层（那会把同一轮的「含乙醇 → AI直发」一起冻掉，
+          // S6 那一幕就没了）。去向没丢：`permissions.E05 客服承诺逾期未做`
+          // 接在第 2 层，`需触发=H3`，判出来就是 `报备`。
+          // 这两格只在**接口没答上来**时上屏（`合本轮处置` 有命中就整条换接口的），
+          // 所以它们错了平时看不出来 —— 兜底态才是它们唯一的出口。
           {
-            id: "S_DEMO_A-1-3",
-            \u8F6E\u6B21: 1,
+            id: "S_DEMO_A-2-1",
+            \u8F6E\u6B21: 2,
             \u4E3B\u5F20: "\u8D60\u54C1\u6F0F\u53D1",
             \u8F93\u51FA: "\u62A5\u5907",
             \u8BF4\u660E: `H3 \u547D\u4E2D\uFF1A${\u627F\u8BFA\u65E5} \u7684\u627F\u8BFA${\u903E\u671F}`,
             \u6D89\u53CA\u4E2A\u4F53\u5DEE\u5F02: false,
             \u9700\u8FB9\u754C\u53E5: false,
-            \u5C42: "\u786C\u89E6\u53D1",
-            \u6743\u9650\u53BB\u5411: "",
+            \u5C42: "\u7B2C2\u5C42",
+            \u6743\u9650\u53BB\u5411: "\u62A5\u5907",
             \u4EA4\u63A5\u5206\u7C7B: ""
           }
         ]
@@ -1539,12 +1553,18 @@ var \u4EE3\u53D1\u7F72\u540D = {
   \u62A5\u5907: "Primer \u81EA\u52A8\u53D1\u9001 \xB7 \u5B89\u629A\u8BDD\u672F\uFF08\u4E0D\u542B\u627F\u8BFA\uFF0C\u65E0\u9700\u5BA2\u670D\u70B9\uFF09"
 };
 var \u6279\u51C6\u6BEB\u79D2 = 6e3;
-function buildAutoMessage(\u4F1A\u8BDD, \u951A, \u6587, \u7F72\u540D) {
+function buildAutoMessage(\u4F1A\u8BDD, \u951A, \u6587, \u7F72\u540D, \u7B2C\u51E0\u6761 = 0) {
   return {
     ...buildAgentMessage(\u4F1A\u8BDD, \u6587, \u951A.\u6D88\u606F\u5E8F\u53F7),
     // 自己的 id：**不能沿用 `buildAgentMessage` 那个**，那个是「客服在界面上发了一条」
     // 的记号，会和客服真发出去的那条撞上（`MessageList` 拿它当 key）。
-    message_id: `${\u4F1A\u8BDD.\u4F1A\u8BDDID}${\u672C\u5730\u8BB0\u53F7}AI-${\u951A.\u6D88\u606F\u5E8F\u53F7}`,
+    //
+    // ⚠️ **`第几条` 是 2026-10-06 补的，不能省。** 一条轮次里可能不止一句代发的话
+    // （无卡无稿那一轮是按日志原话一句一条地补的，一轮里有两句客服话的实测占 63/482）。
+    // 只拿锚的下标当 id 的话，同一轮里那几条**共用一个 key** —— 而 `MessageList`
+    // 就是拿它当 key 的，React 那边表现为少画一条、或者两条互相顶掉，
+    // 而屏幕上不报任何错。
+    message_id: `${\u4F1A\u8BDD.\u4F1A\u8BDDID}${\u672C\u5730\u8BB0\u53F7}AI-${\u951A.\u6D88\u606F\u5E8F\u53F7}-${\u7B2C\u51E0\u6761}`,
     \u53D1\u9001\u65F6\u95F4: \u951A.\u53D1\u9001\u65F6\u95F4,
     \u89D2\u8272: "AI",
     \u53D1\u9001\u65B9: "Primer",
@@ -1569,6 +1589,7 @@ function App() {
   const [\u73B0\u573A\u6D88\u606F\u8868, set\u73B0\u573A\u6D88\u606F\u8868] = (0, import_react2.useState)({});
   const [\u73B0\u573A\u5BA2\u670D\u8BDD, set\u73B0\u573A\u5BA2\u670D\u8BDD] = (0, import_react2.useState)({});
   const [\u73B0\u573A\u62A5\u5907, set\u73B0\u573A\u62A5\u5907] = (0, import_react2.useState)({});
+  const [\u73B0\u573A\u8F6C\u4EA4\u8F6E, set\u73B0\u573A\u8F6C\u4EA4\u8F6E] = (0, import_react2.useState)({});
   const [\u5224\u5B9A\u8868, set\u5224\u5B9A\u8868] = (0, import_react2.useState)({});
   const [\u9700\u6C42\u5206\u89E3\u8868, set\u9700\u6C42\u5206\u89E3\u8868] = (0, import_react2.useState)({});
   const [\u9700\u6C42\u515C\u5E95, set\u9700\u6C42\u515C\u5E95] = (0, import_react2.useState)({});
@@ -1659,21 +1680,43 @@ function App() {
     const \u4F1A\u8BDD = sessions2.find((s) => s.\u4F1A\u8BDDID === activeId);
     const \u7B54\u8868 = \u5224\u5B9A\u8868[activeId];
     if (!\u4F1A\u8BDD || !\u7B54\u8868) return \u7A7A2;
+    const \u4EA4\u63A5\u8F6E = \u73B0\u573A\u8F6C\u4EA4\u8F6E[activeId];
     const \u51FA = {};
     for (let \u8F6E = 1; \u8F6E <= \u5F53\u524D\u771F\u8F6E\u6B21; \u8F6E += 1) {
       const \u7B54 = \u7B54\u8868[\u8F6E];
+      if (\u4EA4\u63A5\u8F6E !== void 0 && \u8F6E >= \u4EA4\u63A5\u8F6E) continue;
       const \u5224\u8FC7 = \u7B54?.\u770B\u5230\u6D88\u606F\u6570;
       if (\u5224\u8FC7 === void 0 || \u5224\u8FC7 === null || \u5224\u8FC7 > \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570) continue;
+      const \u951A = \u6D88\u606F\u4EEC.find((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u4E70\u5BB6");
+      if (!\u951A) continue;
       const \u6761 = \u7B54.\u672C\u8F6E\u5904\u7F6E.filter(
         (d) => AI\u540D\u4E49.has(d.\u8F93\u51FA) && Boolean(d.\u8BDD\u672F)
       );
-      if (!\u6761.length) continue;
-      const \u951A = \u6D88\u606F\u4EEC.find((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u4E70\u5BB6");
-      if (!\u951A) continue;
-      \u51FA[\u8F6E] = \u6761.map((d) => buildAutoMessage(\u4F1A\u8BDD, \u951A, d.\u8BDD\u672F, \u4EE3\u53D1\u7F72\u540D[d.\u8F93\u51FA]));
+      if (\u6761.length) {
+        \u51FA[\u8F6E] = \u6761.map((d) => buildAutoMessage(\u4F1A\u8BDD, \u951A, d.\u8BDD\u672F, \u4EE3\u53D1\u7F72\u540D[d.\u8F93\u51FA]));
+        continue;
+      }
+      if (\u63A5\u53E3\u5EFA\u8BAE(\u7B54.\u4E3B\u5361)) continue;
+      if (\u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u8F6E] !== void 0) continue;
+      const \u539F\u8BDD = \u6D88\u606F\u4EEC.filter((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u5BA2\u670D");
+      if (!\u539F\u8BDD.length) continue;
+      \u51FA[\u8F6E] = \u539F\u8BDD.map(
+        (m, \u5E8F) => buildAutoMessage(\u4F1A\u8BDD, \u951A, m.message_text, \u4EE3\u53D1\u7F72\u540D.AI\u76F4\u53D1, \u5E8F)
+      );
     }
     return \u51FA;
-  }, [\u5267\u672C, \u5F53\u524D\u771F\u8F6E\u6B21, \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570, \u5224\u5B9A\u8868, activeId, sessions2, \u6D88\u606F\u4EEC, \u5F52\u5C5E]);
+  }, [
+    \u5267\u672C,
+    \u5F53\u524D\u771F\u8F6E\u6B21,
+    \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570,
+    \u5224\u5B9A\u8868,
+    activeId,
+    sessions2,
+    \u6D88\u606F\u4EEC,
+    \u5F52\u5C5E,
+    \u73B0\u573A\u8F6C\u4EA4\u8F6E,
+    \u73B0\u573A\u5BA2\u670D\u8BDD
+  ]);
   const \u76F4\u53D1\u8F6E = (0, import_react2.useMemo)(
     () => new Set(
       Object.keys(\u771F\u4EE3\u53D1).map(Number).filter((\u8F6E) => \u5224\u5B9A\u8868[activeId]?.[\u8F6E]?.\u4E3B\u5361 === null)
@@ -2001,6 +2044,7 @@ function App() {
       \u4F1A\u8BDDID,
       (s) => \u52A8\u4F5C === "\u62A5\u5907" ? { ...s, \u62A5\u5907: { \u7B49\u5F85\u5206\u949F: 0, \u5DE5\u5355\u53F7: \u5355\u53F7 } } : { ...s, \u8F6C\u4EA4: { \u5DE5\u5355\u53F7: \u5355\u53F7 } }
     );
+    if (\u52A8\u4F5C === "\u8F6C\u4EA4") set\u73B0\u573A\u8F6C\u4EA4\u8F6E((prev) => ({ ...prev, [\u4F1A\u8BDDID]: \u8F6E\u6B21 }));
     if (\u52A8\u4F5C === "\u62A5\u5907" && !\u5267\u672C) {
       set\u73B0\u573A\u62A5\u5907((prev) => ({ ...prev, [\u4F1A\u8BDDID]: "\u7B49\u5BA1\u6279" }));
       setTimeout(() => {

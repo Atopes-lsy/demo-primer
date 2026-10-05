@@ -392,7 +392,7 @@ var \u7EBF\u4E00\u4F1A\u8BDD = {
       \u53D1\u51FA\u5546\u54C1\u540D\u79F0: "\u6D4B\u8BD5B5\u9762\u819C\u4F53\u9A8C\u88C52\u7247",
       \u6570\u91CF: 1,
       \u539F\u8BA2\u5355\u7269\u6D41\u5355\u53F7: "",
-      // 空 = 还没发出。第七步「逾期浮出来」说的就是这件事。
+      // 空 = 还没发出。第六步「逾期浮出来」说的就是这件事。
       \u8865\u53D1\u7269\u6D41\u5355\u53F7: "",
       \u5FEB\u9012\u516C\u53F8: "\u5706\u901A\u901F\u9012",
       \u53D1\u8D27\u4ED3\u5E93: "\u6DF1\u5733\u4ED3",
@@ -445,7 +445,8 @@ var \u7EBF\u4E00\u5267\u672C = {
     // **第一停落在卡片之前**：演示的人按下播放，右栏刚翻出老记录，屏幕上就写着
     // 「⏸ 等你点［发送］」—— 而聊天区一张卡都没有，可发的东西根本还不存在。
     // 演示的第一拍该是「识别完这次要什么 → 出现卡片 → 停下」，所以那一串挪回
-    // 第五格（那本来就是它的位置），这一格恢复成**不停**。
+    // 「这条得你来发」那一格（那本来就是它的位置 —— 当时叫第五格），这一格恢复成
+    // **不停**。
     //
     // 那一串为什么不能留在这儿：它要改的是**卡给的那句话术**，而卡要到第三格才
     // 上屏 —— 卡还没有，客服改什么。
@@ -478,10 +479,11 @@ var \u7EBF\u4E00\u5267\u672C = {
     // 那条反而**后**到，屏幕上成了「客服先答完、AI 再补一句」，而它的时间戳
     // 还更早。并进来之后：停在这一格时它已经在屏幕上，客服才动。
     //
-    // **卡一上屏就停（2026-10-04 加）。** 加之前，整条线只有第五格有个停格
-    // （「等你发」那一下），而主卡是**这一格**就出来的 —— 中间隔着第四格：演示的
-    // 人看着卡露脸，一个字没点，三秒后聊天区自己冒出一条以他名义的话（第四格那条
-    // `AI` 绿气泡）。现在卡一出来就停住。三张主卡各有一个这样的停格 —— 这一格、
+    // **卡一上屏就停（2026-10-04 加）。** 加之前，整条线只有「这条得你来发」那一格
+    // 有个停格（「等你发」那一下），而主卡是**这一格**就出来的 —— 中间隔着 AI 直发
+    // 那一格（当时它自己占一格）：演示的人看着卡露脸，一个字没点，三秒后聊天区
+    // 自己冒出一条以他名义的话（就是那条 `AI` 绿气泡）。现在卡一出来就停住。
+    // 三张主卡各有一个这样的停格 —— 这一格、
     // 第六格（一键报备）、线二第一格（立即转交），后两处本来就停在卡出现的那一格上。
     //
     // ── 这一格等的是［发送］：一整轮的活儿都在这一个停格里做完（2026-10-05）──
@@ -489,15 +491,15 @@ var \u7EBF\u4E00\u5267\u672C = {
     // 顺序是：［采用］（把话术搬进输入框）→ 末尾补一句禁语 → 拦截条 → ［一键替换］
     // →［发送］。**发送才是这一格在等的那一下**，也是时间线松开的那一下。
     //
-    // 为什么四件事挤在一个停格里、不再往第五格分一个：**一轮只停一次。**
-    // 2026-10-05 试过「第三格等［采用］、第五格等［发送］」，跑出来是这样的 ——
+    // 为什么四件事挤在一个停格里、不再往第四格分一个：**一轮只停一次。**
+    // 2026-10-05 试过「第三格等［采用］、第四格等［发送］」，跑出来是这样的 ——
     // 演示的人点［采用］，时间线走了；屏幕上卡还在（卡不撤）、输入框里躺着话术，
-    // 看着就像**客服已经说完了**，可到第五格又停一次，提示行还念「等你点［发送］」，
-    // 备注里又写着［采用］。同一个按钮点两遍、同一个动作等两回（用户原话：
-    // 「为什么第五步有重复的暂停重复的采用」）。
+    // 看着就像**客服已经说完了**，可到第四格又停一次，提示行还念「等你点［发送］」，
+    // 备注里又写着［采用］。同一个按钮点两遍、同一个动作等两回（用户原话，按当时
+    // 的格号说的：「为什么第五步有重复的暂停重复的采用」）。
     //
     // 一条规矩收口：**卡上屏 → 停下 → 客服把它做完 → 顾客说下一句。**
-    // 中间不再插第二个停格（第五格因此成了纯过场，见那一步的注释）。
+    // 中间不再插第二个停格（第四格因此成了纯过场，见那一步的注释）。
     //
     // ⚠️ 别把这一格写成［采用］：那颗按钮只把话搬进输入框，搬运完时间线**不动**
     // （`App.handleUseScript` 不放行，这正是 S7 要的 —— 客服正要在那句原文上补
@@ -624,7 +626,7 @@ var \u7EBF\u4E00\u5267\u672C = {
       \u6807\u9898: "\u8FD9\u6761\u5F97\u4F60\u6765\u53D1",
       \u5907\u6CE8: "\u8F6E\u5230\u5979\u4E86 \u2014\u2014 \u4E3B\u5361\u5728\u4E0A\u4E00\u683C\u5C31\u6446\u51FA\u6765\u4E86\uFF0C\u65C1\u767D\u2465\u7528\u8FD9\u4E00\u62CD"
     },
-    // ── 第六步：顾客想起上次那件事 —— 她说完，「这次要什么」当场多一截 ──
+    // ── 第五步：顾客想起上次那件事 —— 她说完，「这次要什么」当场多一截 ──
     //
     // **分镜表 §四 那条「同一屏、同一时刻只动一个东西」，这一格是有意破的**
     // （2026-10-04 用户拍板）。原本这一格右栏纹丝不动，新值留到下一格「逾期
@@ -686,7 +688,7 @@ var \u7EBF\u4E00\u5267\u672C = {
         ]
       }
     },
-    // ── 第七步：逾期浮出来，主卡从「需要话术」翻成 ③ 报备（琥珀）──
+    // ── 第六步：逾期浮出来，主卡从「需要话术」翻成 ③ 报备（琥珀）──
     //
     // 逾期本身是从**顾客情况第三行**（`时限`）比出来的 —— 那行写着 9/27 24:00，
     // 今天 9/29，两天。上一格她问了，这一格系统把记录翻出来对上：`警示` 也是
@@ -775,22 +777,36 @@ var \u7EBF\u4E00\u5267\u672C = {
             \u6743\u9650\u53BB\u5411: "\u672A\u5217\u660E",
             \u4EA4\u63A5\u5206\u7C7B: ""
           },
+          // ⚠️ **这一条的 `轮次` 是 2，不是 1。** 它是**第 2 轮**判出来的
+          // （顾客第二句「我上次那个赠品还没给我发呢」），只是和上一轮那两条
+          // 攒在同一屏上（`判定.合本轮处置` 的「为什么要跨轮攒」）。
+          // 写 1 的后果不在这一屏：`App.兑现的` 按 `d.轮次 === 用哪个轮次()` 挑，
+          // 挑不到就成了「这一轮没有报备主张」—— ［一键发送］点下去**不报留痕**，
+          // 而屏幕上一切正常。id 跟着轮次走，和接口同形（`${会话ID}-${轮次}-${序号}`）。
+          //
+          // ⚠️ **`层` 是 `第2层`，`权限去向` 是 `报备` —— 不是 `硬触发` / 空串。**
+          // 2026-10-01 工单 A §2.1 拍的是「H3 不短路，只提示」，所以逾期不再把
+          // 整轮冻在硬触发层（那会把同一轮的「含乙醇 → AI直发」一起冻掉，
+          // S6 那一幕就没了）。去向没丢：`permissions.E05 客服承诺逾期未做`
+          // 接在第 2 层，`需触发=H3`，判出来就是 `报备`。
+          // 这两格只在**接口没答上来**时上屏（`合本轮处置` 有命中就整条换接口的），
+          // 所以它们错了平时看不出来 —— 兜底态才是它们唯一的出口。
           {
-            id: "S_DEMO_A-1-3",
-            \u8F6E\u6B21: 1,
+            id: "S_DEMO_A-2-1",
+            \u8F6E\u6B21: 2,
             \u4E3B\u5F20: "\u8D60\u54C1\u6F0F\u53D1",
             \u8F93\u51FA: "\u62A5\u5907",
             \u8BF4\u660E: `H3 \u547D\u4E2D\uFF1A${\u627F\u8BFA\u65E5} \u7684\u627F\u8BFA${\u903E\u671F}`,
             \u6D89\u53CA\u4E2A\u4F53\u5DEE\u5F02: false,
             \u9700\u8FB9\u754C\u53E5: false,
-            \u5C42: "\u786C\u89E6\u53D1",
-            \u6743\u9650\u53BB\u5411: "",
+            \u5C42: "\u7B2C2\u5C42",
+            \u6743\u9650\u53BB\u5411: "\u62A5\u5907",
             \u4EA4\u63A5\u5206\u7C7B: ""
           }
         ]
       }
     },
-    // ── 第八步：审批回来，等客服点发送。**这一步的话压在 `待发` 里** ──
+    // ── 第七步：审批回来，等客服点发送。**这一步的话压在 `待发` 里** ──
     //
     // 这是**输出③「报备」走完一圈的那一下**（脚本 S11：审批回来 → 一键发送）。
     // 所以这句不写 `消息`，写 `待发` —— 演到这一步屏幕上只多一张「组长已批准」，
@@ -1127,6 +1143,7 @@ function \u5408\u4F1A\u8BDD\u5217\u8868(\u63A5\u53E3\u7684) {
 }
 
 // src/data/判定.ts
+var AI\u540D\u4E49 = /* @__PURE__ */ new Set(["AI\u76F4\u53D1", "\u62A5\u5907"]);
 var \u8D85\u65F6\u6BEB\u79D2 = 12e3;
 async function \u53D6\u5224\u5B9A(\u4F1A\u8BDDID, \u8F6E\u6B21, \u5F53\u524D\u65F6\u95F4, \u770B\u5230\u6D88\u606F\u6570) {
   try {
@@ -1164,10 +1181,10 @@ function \u5408\u4E00\u884C(\u5267\u672C\u7684, \u63A5\u53E3\u7684) {
      * **这一格和别的不一样：剧本没给 `警示`，接口给了也不上。**
      *
      * 接口是**一轮一结**，第 1 轮就把 H3 算出来了，`警示` 当场给「已逾期 2 天」。
-     * 剧本是**一格一演**：「逾期浮出来」是线一第 7 步那一拍的全部内容
+     * 剧本是**一格一演**：「逾期浮出来」是线一第 6 步那一拍的全部内容
      * （`剧本.ts` 的 `答应过什么` 函数上写着为什么前三步不带它）。
      *
-     * 照「接口非空就用」的规矩办，第 3 步右栏就开始飘红 —— 第 7 步那一拍
+     * 照「接口非空就用」的规矩办，第 3 步右栏就开始飘红 —— 第 6 步那一拍
      * 还没演就已经演完了，而屏幕上不会报任何错。
      *
      * 代价写在这儿：**接口新算出来的、剧本没写的警示会被压掉。** 在这个演示里
@@ -1262,6 +1279,38 @@ function \u6362\u5BA2\u670D\u8BDD(\u6D88\u606F\u4EEC, \u5F52\u5C5E, \u73B0\u573A
     \u6362\u8FC7.add(\u8F6E);
     return \u6362\u6587\u5B57(\u6761, \u8BDD);
   });
+}
+function \u4E22\u76F4\u53D1\u8F6E\u7684\u8BDD(\u6D88\u606F\u4EEC, \u5F52\u5C5E, \u76F4\u53D1\u8F6E) {
+  if (!\u76F4\u53D1\u8F6E.size) return { \u6D88\u606F: \u6D88\u606F\u4EEC, \u5F52\u5C5E };
+  const \u51FA\u7684\u6761 = [];
+  const \u51FA\u7684\u8F6E = [];
+  \u6D88\u606F\u4EEC.forEach((\u6761, i) => {
+    if (\u76F4\u53D1\u8F6E.has(\u5F52\u5C5E[i]) && \u6761.\u89D2\u8272 === "\u5BA2\u670D") return;
+    \u51FA\u7684\u6761.push(\u6761);
+    \u51FA\u7684\u8F6E.push(\u5F52\u5C5E[i]);
+  });
+  return { \u6D88\u606F: \u51FA\u7684\u6761, \u5F52\u5C5E: \u51FA\u7684\u8F6E };
+}
+function \u63D2\u4EE3\u53D1(\u6D88\u606F\u4EEC, \u5F52\u5C5E, \u4EE3\u53D1\u4EEC) {
+  const \u8981\u63D2 = Object.entries(\u4EE3\u53D1\u4EEC).filter(([, \u6761]) => \u6761?.length).map(([\u8F6E]) => Number(\u8F6E));
+  if (!\u8981\u63D2.length) return \u6D88\u606F\u4EEC;
+  const \u843D\u70B9 = /* @__PURE__ */ new Map();
+  for (let i = 0; i < \u6D88\u606F\u4EEC.length; i += 1) {
+    const \u8F6E = \u5F52\u5C5E[i];
+    if (\u8981\u63D2.includes(\u8F6E) && \u6D88\u606F\u4EEC[i].\u89D2\u8272 === "\u5BA2\u670D" && !\u843D\u70B9.has(\u8F6E)) \u843D\u70B9.set(\u8F6E, i);
+  }
+  for (let i = \u6D88\u606F\u4EEC.length - 1; i >= 0; i -= 1) {
+    const \u8F6E = \u5F52\u5C5E[i];
+    if (\u8981\u63D2.includes(\u8F6E) && !\u843D\u70B9.has(\u8F6E)) \u843D\u70B9.set(\u8F6E, i + 1);
+  }
+  const \u51FA = [];
+  for (let i = 0; i <= \u6D88\u606F\u4EEC.length; i += 1) {
+    for (const \u8F6E of \u8981\u63D2) {
+      if (\u843D\u70B9.get(\u8F6E) === i) \u51FA.push(...\u4EE3\u53D1\u4EEC[\u8F6E]);
+    }
+    if (i < \u6D88\u606F\u4EEC.length) \u51FA.push(\u6D88\u606F\u4EEC[i]);
+  }
+  return \u51FA;
 }
 function \u8865\u516D\u6E90\u7A7A\u4F4D(\u4F9D\u636E) {
   const \u6709 = \u4F9D\u636E ?? [];
@@ -1470,6 +1519,11 @@ var \u65E0\u6D88\u606F = [];
 function \u524D\u6BB5\u4E70\u5BB6\u8BDD\u6570(\u6D88\u606F\u4EEC, \u9876) {
   return \u9876 ? \u6D88\u606F\u4EEC.slice(0, \u9876).filter((m) => m.\u89D2\u8272 === "\u4E70\u5BB6").length : 0;
 }
+function \u62B9\u6389\u672A\u5230\u573A\u7684\u627F\u8BFA(\u884C\u4EEC) {
+  return \u884C\u4EEC?.map(
+    (\u884C) => \u884C.\u6807\u7B7E === "\u7B54\u5E94\u8FC7\u4EC0\u4E48" ? { ...\u884C, \u503C: "", \u5907\u6CE8: void 0, \u8B66\u793A: void 0, \u65F6\u9650: void 0 } : \u884C
+  );
+}
 function buildAgentMessage(session, text, \u5E8F\u53F7) {
   const template = session.\u6D88\u606F.at(-1);
   const now = /* @__PURE__ */ new Date();
@@ -1502,6 +1556,39 @@ var \u5361\u4E0A\u6309\u94AE = {
   \u9700\u8981\u6388\u6743: "\u4E00\u952E\u62A5\u5907",
   \u6709\u98CE\u9669: "\u7ACB\u5373\u8F6C\u4EA4"
 };
+var \u4EE3\u53D1\u7F72\u540D = {
+  AI\u76F4\u53D1: "Primer \u81EA\u52A8\u53D1\u9001",
+  \u62A5\u5907: "Primer \u81EA\u52A8\u53D1\u9001 \xB7 \u5B89\u629A\u8BDD\u672F\uFF08\u4E0D\u542B\u627F\u8BFA\uFF0C\u65E0\u9700\u5BA2\u670D\u70B9\uFF09"
+};
+var \u6279\u51C6\u6BEB\u79D2 = 6e3;
+function buildAutoMessage(\u4F1A\u8BDD, \u951A, \u6587, \u7F72\u540D, \u7B2C\u51E0\u6761 = 0) {
+  return {
+    ...buildAgentMessage(\u4F1A\u8BDD, \u6587, \u951A.\u6D88\u606F\u5E8F\u53F7),
+    // 自己的 id：**不能沿用 `buildAgentMessage` 那个**，那个是「客服在界面上发了一条」
+    // 的记号，会和客服真发出去的那条撞上（`MessageList` 拿它当 key）。
+    //
+    // ⚠️ **`第几条` 是 2026-10-06 补的，不能省。** 一条轮次里可能不止一句代发的话
+    // （无卡无稿那一轮是按日志原话一句一条地补的，一轮里有两句客服话的实测占 63/482）。
+    // 只拿锚的下标当 id 的话，同一轮里那几条**共用一个 key** —— 而 `MessageList`
+    // 就是拿它当 key 的，React 那边表现为少画一条、或者两条互相顶掉，
+    // 而屏幕上不报任何错。
+    message_id: `${\u4F1A\u8BDD.\u4F1A\u8BDDID}${\u672C\u5730\u8BB0\u53F7}AI-${\u951A.\u6D88\u606F\u5E8F\u53F7}-${\u7B2C\u51E0\u6761}`,
+    \u53D1\u9001\u65F6\u95F4: \u951A.\u53D1\u9001\u65F6\u95F4,
+    \u89D2\u8272: "AI",
+    \u53D1\u9001\u65B9: "Primer",
+    \u7F72\u540D
+  };
+}
+function \u5E26\u4EE3\u53D1(\u5361, \u8BDD\u4EEC) {
+  if (!\u5361 || \u5361.\u5DF2\u4EE3\u53D1?.length || !\u8BDD\u4EEC?.length) return \u5361;
+  return {
+    ...\u5361,
+    // `依据` 留空：真窗口上拿不到「这一句话引了哪几条」（接口只回报本轮的六源命中，
+    // `api/证据.py` 的模块文档串专门说了那不是一回事）。空着一眼看得出没有，编一个
+    // 出处上去看不出来。`SentList` 那一行空了就不渲染。
+    \u5DF2\u4EE3\u53D1: \u8BDD\u4EEC.map((m) => ({ \u5185\u5BB9: m.message_text, \u7F72\u540D: m.\u7F72\u540D ?? "", \u4F9D\u636E: [] }))
+  };
+}
 function App() {
   const [sessions2, setSessions] = (0, import_react2.useState)(sessions);
   const [activeId, setActiveId] = (0, import_react2.useState)(
@@ -1509,6 +1596,8 @@ function App() {
   );
   const [\u73B0\u573A\u6D88\u606F\u8868, set\u73B0\u573A\u6D88\u606F\u8868] = (0, import_react2.useState)({});
   const [\u73B0\u573A\u5BA2\u670D\u8BDD, set\u73B0\u573A\u5BA2\u670D\u8BDD] = (0, import_react2.useState)({});
+  const [\u73B0\u573A\u62A5\u5907, set\u73B0\u573A\u62A5\u5907] = (0, import_react2.useState)({});
+  const [\u73B0\u573A\u8F6C\u4EA4\u8F6E, set\u73B0\u573A\u8F6C\u4EA4\u8F6E] = (0, import_react2.useState)({});
   const [\u5224\u5B9A\u8868, set\u5224\u5B9A\u8868] = (0, import_react2.useState)({});
   const [\u9700\u6C42\u5206\u89E3\u8868, set\u9700\u6C42\u5206\u89E3\u8868] = (0, import_react2.useState)({});
   const [\u9700\u6C42\u515C\u5E95, set\u9700\u6C42\u515C\u5E95] = (0, import_react2.useState)({});
@@ -1563,29 +1652,85 @@ function App() {
   const \u5F52\u5C5E = (0, import_react2.useMemo)(() => \u8F6E\u6B21\u5F52\u5C5E(\u6D88\u606F\u4EEC), [\u6D88\u606F\u4EEC]);
   const \u603B\u683C\u6570 = \u5267\u672C ? \u5267\u672C.\u4E8B\u4EF6.length : \u6D3B\u6761\u6570;
   const \u505C\u683C\u8868 = (0, import_react2.useMemo)(() => \u505C\u683C(\u5267\u672C), [\u5267\u672C]);
+  const \u5224\u5B9A\u6E38\u6807 = (\u683C) => {
+    const \u8D77\u6F14\u683C2 = \u672C\u7A97\u53E3?.\u8D77\u6F14\u683C ?? 0;
+    for (let i = Math.min(\u683C, \u6D88\u606F\u4EEC.length) - 1; i >= \u8D77\u6F14\u683C2; i -= 1) {
+      if (\u6D88\u606F\u4EEC[i].\u89D2\u8272 === "\u4E70\u5BB6") return i + 1;
+    }
+    return void 0;
+  };
   const \u771F\u7A97\u53E3\u505C = (\u683C) => {
     if (\u5267\u672C) return null;
     const \u8F6E = \u5728\u7B49\u7684\u8F6E(\u5F52\u5C5E, \u6D88\u606F\u4EEC, \u683C);
     if (!\u8F6E) return null;
     const \u7B54 = \u5224\u5B9A\u8868[activeId]?.[\u8F6E];
-    if (\u7B54?.\u770B\u5230\u6D88\u606F\u6570 !== void 0 && \u7B54.\u770B\u5230\u6D88\u606F\u6570 !== \u683C) {
+    if (\u7B54?.\u770B\u5230\u6D88\u606F\u6570 !== void 0 && \u7B54.\u770B\u5230\u6D88\u606F\u6570 !== \u5224\u5B9A\u6E38\u6807(\u683C)) {
       return \u5224\u5B9A\u4E2D[activeId] ? \u5224\u5B9A\u4E2D\u63D0\u793A : null;
     }
     if (!\u7B54) return \u5224\u5B9A\u4E2D[activeId] ? \u5224\u5B9A\u4E2D\u63D0\u793A : null;
     const \u5361 = \u63A5\u53E3\u5EFA\u8BAE(\u7B54.\u4E3B\u5361);
     if (!\u5361) return null;
-    const \u505A\u8FC7\u4E86 = \u5361.\u5F62\u6001 === "\u9700\u8981\u8BDD\u672F" && \u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u8F6E] !== void 0 || \u5361.\u5F62\u6001 === "\u9700\u8981\u6388\u6743" && Boolean(\u672C\u7A97\u53E3?.\u62A5\u5907) || \u5361.\u5F62\u6001 === "\u6709\u98CE\u9669" && Boolean(\u672C\u7A97\u53E3?.\u8F6C\u4EA4);
+    const \u505A\u8FC7\u4E86 = \u5361.\u5F62\u6001 === "\u9700\u8981\u8BDD\u672F" && \u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u8F6E] !== void 0 || \u5361.\u5F62\u6001 === "\u9700\u8981\u6388\u6743" && (\u5267\u672C ? Boolean(\u672C\u7A97\u53E3?.\u62A5\u5907) : \u73B0\u573A\u62A5\u5907[activeId] === "\u5DF2\u7B54\u590D") || \u5361.\u5F62\u6001 === "\u6709\u98CE\u9669" && Boolean(\u672C\u7A97\u53E3?.\u8F6C\u4EA4);
     return \u505A\u8FC7\u4E86 ? null : \u5361\u4E0A\u6309\u94AE[\u5361.\u5F62\u6001];
   };
   const \u64AD\u653E = usePlayer(\u603B\u683C\u6570, \u505C\u683C\u8868, \u771F\u7A97\u53E3\u505C);
-  const \u5F53\u524D\u771F\u8F6E\u6B21 = \u5267\u672C || \u64AD\u653E.\u5DF2\u64AD\u683C\u6570 <= (\u672C\u7A97\u53E3?.\u8D77\u6F14\u683C ?? 0) ? 0 : \u6F14\u5230\u7B2C\u51E0\u8F6E(\u5F52\u5C5E, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570);
-  const \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 = \u5267\u672C ? void 0 : \u64AD\u653E.\u5DF2\u64AD\u683C\u6570;
+  const \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 = \u5267\u672C ? void 0 : \u5224\u5B9A\u6E38\u6807(\u64AD\u653E.\u5DF2\u64AD\u683C\u6570);
+  const \u5F53\u524D\u771F\u8F6E\u6B21 = \u5267\u672C || \u64AD\u653E.\u5DF2\u64AD\u683C\u6570 <= (\u672C\u7A97\u53E3?.\u8D77\u6F14\u683C ?? 0) || \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 === void 0 ? 0 : \u6F14\u5230\u7B2C\u51E0\u8F6E(\u5F52\u5C5E, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570);
   const \u53EF\u7528\u771F\u7B54 = (\u8F6E) => {
     const \u7B54 = \u5224\u5B9A\u8868[activeId]?.[\u8F6E];
     if (!\u7B54 || \u5267\u672C || \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 === void 0) return \u7B54;
     return \u7B54.\u770B\u5230\u6D88\u606F\u6570 === \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 ? \u7B54 : void 0;
   };
   const \u53EF\u89C1\u6B64\u523B = \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 && \u6D88\u606F\u4EEC[\u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 - 1]?.\u53D1\u9001\u65F6\u95F4 ? \u6D88\u606F\u4EEC[\u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 - 1].\u53D1\u9001\u65F6\u95F4 : void 0;
+  const \u771F\u4EE3\u53D1 = (0, import_react2.useMemo)(() => {
+    const \u7A7A2 = {};
+    if (\u5267\u672C || \u5F53\u524D\u771F\u8F6E\u6B21 <= 0 || \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570 === void 0) return \u7A7A2;
+    const \u4F1A\u8BDD = sessions2.find((s) => s.\u4F1A\u8BDDID === activeId);
+    const \u7B54\u8868 = \u5224\u5B9A\u8868[activeId];
+    if (!\u4F1A\u8BDD || !\u7B54\u8868) return \u7A7A2;
+    const \u4EA4\u63A5\u8F6E = \u73B0\u573A\u8F6C\u4EA4\u8F6E[activeId];
+    const \u51FA = {};
+    for (let \u8F6E = 1; \u8F6E <= \u5F53\u524D\u771F\u8F6E\u6B21; \u8F6E += 1) {
+      const \u7B54 = \u7B54\u8868[\u8F6E];
+      if (\u4EA4\u63A5\u8F6E !== void 0 && \u8F6E >= \u4EA4\u63A5\u8F6E) continue;
+      const \u5224\u8FC7 = \u7B54?.\u770B\u5230\u6D88\u606F\u6570;
+      if (\u5224\u8FC7 === void 0 || \u5224\u8FC7 === null || \u5224\u8FC7 > \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570) continue;
+      const \u951A = \u6D88\u606F\u4EEC.find((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u4E70\u5BB6");
+      if (!\u951A) continue;
+      const \u6761 = \u7B54.\u672C\u8F6E\u5904\u7F6E.filter(
+        (d) => AI\u540D\u4E49.has(d.\u8F93\u51FA) && Boolean(d.\u8BDD\u672F)
+      );
+      if (\u6761.length) {
+        \u51FA[\u8F6E] = \u6761.map((d) => buildAutoMessage(\u4F1A\u8BDD, \u951A, d.\u8BDD\u672F, \u4EE3\u53D1\u7F72\u540D[d.\u8F93\u51FA]));
+        continue;
+      }
+      if (\u63A5\u53E3\u5EFA\u8BAE(\u7B54.\u4E3B\u5361)) continue;
+      if (\u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u8F6E] !== void 0) continue;
+      const \u539F\u8BDD = \u6D88\u606F\u4EEC.filter((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u5BA2\u670D");
+      if (!\u539F\u8BDD.length) continue;
+      \u51FA[\u8F6E] = \u539F\u8BDD.map(
+        (m, \u5E8F) => buildAutoMessage(\u4F1A\u8BDD, \u951A, m.message_text, \u4EE3\u53D1\u7F72\u540D.AI\u76F4\u53D1, \u5E8F)
+      );
+    }
+    return \u51FA;
+  }, [
+    \u5267\u672C,
+    \u5F53\u524D\u771F\u8F6E\u6B21,
+    \u5F53\u524D\u770B\u5230\u6D88\u606F\u6570,
+    \u5224\u5B9A\u8868,
+    activeId,
+    sessions2,
+    \u6D88\u606F\u4EEC,
+    \u5F52\u5C5E,
+    \u73B0\u573A\u8F6C\u4EA4\u8F6E,
+    \u73B0\u573A\u5BA2\u670D\u8BDD
+  ]);
+  const \u76F4\u53D1\u8F6E = (0, import_react2.useMemo)(
+    () => new Set(
+      Object.keys(\u771F\u4EE3\u53D1).map(Number).filter((\u8F6E) => \u5224\u5B9A\u8868[activeId]?.[\u8F6E]?.\u4E3B\u5361 === null)
+    ),
+    [\u771F\u4EE3\u53D1, \u5224\u5B9A\u8868, activeId]
+  );
   (0, import_react2.useEffect)(() => {
     const \u8F6E = \u5F53\u524D\u5224\u5B9A\u8F6E\u6B21(\u5267\u672C, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570);
     if (!\u5267\u672C || \u8F6E === void 0) return;
@@ -1640,15 +1785,23 @@ function App() {
   const \u8D34\u5224\u5B9A = (s, \u672C, \u8981\u4EC0\u4E482) => {
     const \u76D6\u8981\u4EC0\u4E48 = (\u4F1A\u8BDD) => \u8981\u4EC0\u4E482 ? { ...\u4F1A\u8BDD, \u987E\u5BA2\u60C5\u51B5: \u5408\u9700\u6C42\u5206\u89E3(\u4F1A\u8BDD.\u987E\u5BA2\u60C5\u51B5, \u8981\u4EC0\u4E482) } : \u4F1A\u8BDD;
     if (!\u672C) {
-      const \u5E95 = { ...s, \u987E\u5BA2\u60C5\u51B5: \u62B9\u6389\u8981\u4EC0\u4E48\u884C(s.\u987E\u5BA2\u60C5\u51B5) };
+      const \u5E95 = {
+        ...s,
+        \u987E\u5BA2\u60C5\u51B5: \u62B9\u6389\u672A\u5230\u573A\u7684\u627F\u8BFA(\u62B9\u6389\u8981\u4EC0\u4E48\u884C(s.\u987E\u5BA2\u60C5\u51B5))
+      };
       const \u771F\u7B54 = s.\u4F1A\u8BDDID === activeId && \u5F53\u524D\u771F\u8F6E\u6B21 > 0 ? \u53EF\u7528\u771F\u7B54(\u5F53\u524D\u771F\u8F6E\u6B21) : void 0;
-      const \u6D88\u606F = \u6362\u5BA2\u670D\u8BDD(s.\u6D88\u606F, \u5F52\u5C5E, \u73B0\u573A\u5BA2\u670D\u8BDD[s.\u4F1A\u8BDDID]);
+      const \u4E22\u8FC7 = \u4E22\u76F4\u53D1\u8F6E\u7684\u8BDD(
+        \u6362\u5BA2\u670D\u8BDD(s.\u6D88\u606F, \u5F52\u5C5E, \u73B0\u573A\u5BA2\u670D\u8BDD[s.\u4F1A\u8BDDID]),
+        \u5F52\u5C5E,
+        \u76F4\u53D1\u8F6E
+      );
+      const \u6D88\u606F = \u63D2\u4EE3\u53D1(\u4E22\u8FC7.\u6D88\u606F, \u4E22\u8FC7.\u5F52\u5C5E, \u771F\u4EE3\u53D1);
       if (!\u771F\u7B54) return \u76D6\u8981\u4EC0\u4E48({ ...\u5E95, \u6D88\u606F });
       const \u5404\u8F6E\u5904\u7F6E2 = Object.keys(\u5224\u5B9A\u8868[s.\u4F1A\u8BDDID] ?? {}).map(Number).filter((n) => n <= \u5F53\u524D\u771F\u8F6E\u6B21).sort((a, b) => a - b).map((n) => \u5224\u5B9A\u8868[s.\u4F1A\u8BDDID][n].\u672C\u8F6E\u5904\u7F6E);
       return \u76D6\u8981\u4EC0\u4E48({
         ...\u5E95,
         \u987E\u5BA2\u60C5\u51B5: \u771F\u7B54.\u987E\u5BA2\u60C5\u51B5.length ? \u771F\u7B54.\u987E\u5BA2\u60C5\u51B5 : \u5E95.\u987E\u5BA2\u60C5\u51B5,
-        \u5EFA\u8BAE: \u63A5\u53E3\u5EFA\u8BAE(\u771F\u7B54.\u4E3B\u5361),
+        \u5EFA\u8BAE: \u5E26\u4EE3\u53D1(\u63A5\u53E3\u5EFA\u8BAE(\u771F\u7B54.\u4E3B\u5361), \u771F\u4EE3\u53D1[\u5F53\u524D\u771F\u8F6E\u6B21]),
         \u672C\u8F6E\u5904\u7F6E: \u5404\u8F6E\u5904\u7F6E2.flat(),
         \u6D88\u606F
       });
@@ -1718,6 +1871,7 @@ function App() {
     return \u5F53\u524D\u771F\u8F6E\u6B21 > 0 && \u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u5F53\u524D\u771F\u8F6E\u6B21] !== void 0;
   }, [\u5267\u672C, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570, \u73B0\u573A\u6D88\u606F\u8868, \u73B0\u573A\u5BA2\u670D\u8BDD, \u5F53\u524D\u771F\u8F6E\u6B21, activeId]);
   const \u62A5\u5907\u6001 = (0, import_react2.useMemo)(() => {
+    if (!\u5267\u672C) return \u73B0\u573A\u62A5\u5907[activeId] ?? "\u7B49\u5BA1\u6279";
     let \u89C1\u8FC7\u5F85\u53D1 = false;
     for (let i = 0; i < \u64AD\u653E.\u5DF2\u64AD\u683C\u6570; i++) {
       const \u5F85\u53D1 = \u5267\u672C?.\u4E8B\u4EF6[i]?.\u5F85\u53D1;
@@ -1726,12 +1880,17 @@ function App() {
       if (\u5F85\u53D1.some((m) => !\u5DF2\u53D1\u73B0\u573A.has(m.message_id))) return "\u7B49\u53D1\u9001";
     }
     return \u89C1\u8FC7\u5F85\u53D1 ? "\u5DF2\u7B54\u590D" : "\u7B49\u5BA1\u6279";
-  }, [\u5267\u672C, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570, \u5DF2\u53D1\u73B0\u573A]);
+  }, [\u5267\u672C, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570, \u5DF2\u53D1\u73B0\u573A, \u73B0\u573A\u62A5\u5907, activeId]);
   const \u5F85\u53D1\u7684 = (0, import_react2.useMemo)(
     () => \u5408\u6D88\u606F(\u5267\u672C?.\u4E8B\u4EF6[\u64AD\u653E.\u5DF2\u64AD\u683C\u6570 - 1]?.\u5F85\u53D1 ?? [], \u5267\u672C, \u5224\u5B9A\u8868[activeId]),
     [\u5267\u672C, \u64AD\u653E.\u5DF2\u64AD\u683C\u6570, \u5224\u5B9A\u8868, activeId]
   );
-  const \u5F85\u53D1\u53E5 = \u62A5\u5907\u6001 === "\u7B49\u53D1\u9001" ? \u5F85\u53D1\u7684.find((m) => !\u5DF2\u53D1\u73B0\u573A.has(m.message_id)) : void 0;
+  const \u5F85\u53D1\u53E5 = \u62A5\u5907\u6001 !== "\u7B49\u53D1\u9001" ? void 0 : \u5267\u672C ? \u5F85\u53D1\u7684.find((m) => !\u5DF2\u53D1\u73B0\u573A.has(m.message_id)) : (
+    // 真窗口：**要发的就是日志里那一句**，时间线正停在它前面（`在等的轮`）。
+    // 不是「凑一句摆上去」—— 这一句是当时真发出去的原话，也正是顾客的下一句
+    // 在接的东西（顶掉它换一句成稿，对话就断在那儿，实测 23 轮 ② 里 5 轮如此）。
+    \u6D88\u606F\u4EEC[\u64AD\u653E.\u5DF2\u64AD\u683C\u6570]
+  );
   const \u515C\u5E95 = [];
   if (\u5224\u5B9A\u672A\u8FDE) \u515C\u5E95.push("\u5224\u5B9A");
   if (\u9700\u6C42\u515C\u5E95[activeId]) \u515C\u5E95.push("\u9700\u6C42\u5206\u89E3");
@@ -1823,6 +1982,13 @@ function App() {
     \u64AD\u653E.\u7EE7\u7EED();
   };
   const handleSendPending = () => {
+    if (!\u5267\u672C) {
+      set\u73B0\u573A\u62A5\u5907((prev) => ({ ...prev, [activeId]: "\u5DF2\u7B54\u590D" }));
+      const \u53E5 = \u5F85\u53D1\u53E5;
+      if (\u53E5) \u8BB0\u4E00\u7B14\u53D1\u9001(\u53E5.message_text, "\u62A5\u5907");
+      \u64AD\u653E.\u7EE7\u7EED();
+      return;
+    }
     if (!\u5F85\u53D1\u7684.length) return;
     const \u6B65 = \u64AD\u653E.\u5DF2\u64AD\u683C\u6570;
     set\u73B0\u573A\u6D88\u606F\u8868((prev) => ({
@@ -1886,6 +2052,15 @@ function App() {
       \u4F1A\u8BDDID,
       (s) => \u52A8\u4F5C === "\u62A5\u5907" ? { ...s, \u62A5\u5907: { \u7B49\u5F85\u5206\u949F: 0, \u5DE5\u5355\u53F7: \u5355\u53F7 } } : { ...s, \u8F6C\u4EA4: { \u5DE5\u5355\u53F7: \u5355\u53F7 } }
     );
+    if (\u52A8\u4F5C === "\u8F6C\u4EA4") set\u73B0\u573A\u8F6C\u4EA4\u8F6E((prev) => ({ ...prev, [\u4F1A\u8BDDID]: \u8F6E\u6B21 }));
+    if (\u52A8\u4F5C === "\u62A5\u5907" && !\u5267\u672C) {
+      set\u73B0\u573A\u62A5\u5907((prev) => ({ ...prev, [\u4F1A\u8BDDID]: "\u7B49\u5BA1\u6279" }));
+      setTimeout(() => {
+        set\u73B0\u573A\u62A5\u5907(
+          (prev) => prev[\u4F1A\u8BDDID] === "\u7B49\u5BA1\u6279" ? { ...prev, [\u4F1A\u8BDDID]: "\u7B49\u53D1\u9001" } : prev
+        );
+      }, \u6279\u51C6\u6BEB\u79D2);
+    }
     \u64AD\u653E.\u7EE7\u7EED();
   };
   const handleReport = () => void \u8D70\u52A8\u4F5C("\u62A5\u5907");
@@ -1916,6 +2091,7 @@ function App() {
         onSendPending: handleSendPending,
         \u62A5\u5907\u6001,
         \u5F85\u53D1\u53E5,
+        \u5F85\u53D1\u9644\u6CE8: \u5267\u672C ? void 0 : "\u8FD9\u4E00\u53E5\u662F\u65E5\u5FD7\u91CC\u5F53\u65F6\u53D1\u51FA\u53BB\u7684\u539F\u8BDD",
         \u672C\u8F6E\u5DF2\u53D1,
         \u63A5\u53E3\u4EA4\u63A5\u5305: \u4EA4\u63A5\u5305\u8868[activeId],
         \u515C\u5E95,
@@ -2012,7 +2188,7 @@ function SentList({ \u5DF2\u4EE3\u53D1 }) {
           "\u25C6 ",
           \u6761.\u7F72\u540D
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "mt-0.5 text-note leading-relaxed text-ink-4", children: \u6761.\u4F9D\u636E.map((e) => `${e.\u5E8F\u53F7} ${e.\u51FA\u5904}`).join("\u3000") })
+        \u6761.\u4F9D\u636E.length ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "mt-0.5 text-note leading-relaxed text-ink-4", children: \u6761.\u4F9D\u636E.map((e) => `${e.\u5E8F\u53F7} ${e.\u51FA\u5904}`).join("\u3000") }) : null
       ] }, `${i}-${\u6761.\u5185\u5BB9}`)
     ))
   ] });
@@ -2027,6 +2203,7 @@ function AdviceCard({
   \u8F6C\u4EA4,
   \u62A5\u5907\u6001,
   \u5F85\u53D1\u53E5,
+  \u5F85\u53D1\u9644\u6CE8 = "\u8FD9\u53E5\u662F\u6309\u5BA1\u6279\u53E3\u5F84\u5199\u597D\u7684",
   \u5DF2\u53D1\u672C\u8F6E
 }) {
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("section", { className: `rounded-md border bg-panel ${\u63CF\u8FB9[advice.\u5F62\u6001]}`, children: [
@@ -2061,7 +2238,8 @@ function AdviceCard({
             /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("p", { className: "mt-0.5 text-note text-ink-4", children: [
               "\u62A5\u5907\u5355\u53F7 ",
               \u62A5\u5907.\u5DE5\u5355\u53F7,
-              " \xB7 \u8FD9\u53E5\u662F\u6309\u5BA1\u6279\u53E3\u5F84\u5199\u597D\u7684"
+              " \xB7 ",
+              \u5F85\u53D1\u9644\u6CE8
             ] }),
             /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
               "button",
