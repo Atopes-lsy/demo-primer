@@ -33,6 +33,17 @@
 ⚠️ 变量名带中文，是这个仓库的命名习惯（模型位就叫 `话术生成`）。**代价是
 Windows 的 `cmd.exe` 在非 UTF-8 代码页下不好设** —— 演示用的 Git Bash 没这个问题。
 
+嵌入（`先例库`）
+================
+
+    PRIMER_LLM_MODEL_先例库    **默认 `text-embedding-v4`**
+    PRIMER_LLM_BASE_URL_先例库
+    PRIMER_LLM_KEY_先例库
+
+⚠️ **只有模型那条的回退不是全局。** 另外几个位不设时都落到 `qwen-plus`，而聊天
+端点不认嵌入模型名、嵌入端点也不认 `qwen-plus`。密钥和地址照旧回退（同一家厂商、
+同一把钥匙），只有模型是**各管各的默认值**，见 `先例库模型`。
+
 真实调用 vs 假模型
 ==================
 
@@ -44,7 +55,7 @@ Windows 的 `cmd.exe` 在非 UTF-8 代码页下不好设** —— 演示用的 G
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from functools import lru_cache
 
 from openai import OpenAI
@@ -72,6 +83,17 @@ from openai import OpenAI
 需求分解模型变量 = "PRIMER_LLM_MODEL_需求分解"
 需求分解地址变量 = "PRIMER_LLM_BASE_URL_需求分解"
 需求分解密钥变量 = "PRIMER_LLM_KEY_需求分解"
+
+#: 嵌入那份。`检索/先例库.py` 用（读侧召回 ＋ 重建时嵌全库）。
+默认嵌入模型 = "text-embedding-v4"
+
+#: 一次请求最多嵌几条。**10 是服务端硬上限**，超了报
+#: `batch size is invalid, it should not be larger than 10`（2026-10-05 实测）。
+嵌入批 = 10
+
+先例库模型变量 = "PRIMER_LLM_MODEL_先例库"
+先例库地址变量 = "PRIMER_LLM_BASE_URL_先例库"
+先例库密钥变量 = "PRIMER_LLM_KEY_先例库"
 
 #: 「问一次」的形状：提示 ＋ 系统提示 → 模型回答的纯文本。
 #:
@@ -127,6 +149,19 @@ def 需求分解密钥() -> str:
     return os.environ.get(需求分解密钥变量) or 取密钥()
 
 
+def 先例库模型() -> str:
+    """嵌入那份模型名。**默认不跟着全局走**（见模块文档串），要换只改这三个变量。"""
+    return os.environ.get(先例库模型变量) or 默认嵌入模型
+
+
+def 先例库地址() -> str:
+    return os.environ.get(先例库地址变量) or 取地址()
+
+
+def 先例库密钥() -> str:
+    return os.environ.get(先例库密钥变量) or 取密钥()
+
+
 @lru_cache(maxsize=8)
 def _客户端(地址: str, 密钥: str) -> OpenAI:
     """client 单例，**按（地址，密钥）各一个**。
@@ -144,6 +179,36 @@ def _客户端(地址: str, 密钥: str) -> OpenAI:
             f"没读到密钥。设 PRIMER_LLM_KEY，或设 {默认密钥变量}（默认找它）。"
         )
     return OpenAI(api_key=密钥, base_url=地址)
+
+
+def 嵌文本(
+    文本们: Sequence[str],
+    *,
+    模型: str | None = None,
+    地址: str | None = None,
+    密钥: str | None = None,
+) -> list[list[float]]:
+    """一批文本 → 一批向量，**顺序与入参一致**。
+
+    `嵌入批` 片切是服务端要求；`sorted(..., key=index)` 是**必须的**：批量接口
+    不保证返回顺序，按到达顺序配对是静默错位 —— 向量和句子对不上，召回全靠运气，
+    而且不报错。片内顺序由我们拼，片间顺序由循环拼。
+    """
+    if not 文本们:
+        return []
+    用模型 = 模型 or 先例库模型()
+    客户端_ = _客户端(地址 or 先例库地址(), 密钥 or 先例库密钥())
+    出: list[list[float]] = []
+    for i in range(0, len(文本们), 嵌入批):
+        片 = list(文本们[i : i + 嵌入批])
+        try:
+            回应 = 客户端_.embeddings.create(model=用模型, input=片)
+        except LLM不可用:
+            raise
+        except Exception as 错:  # noqa: BLE001 —— 和 `_问` 同一条：包一层好让调用方只 catch 一种
+            raise LLM不可用(f"嵌 {用模型} 失败：{错}") from 错
+        出.extend(d.embedding for d in sorted(回应.data, key=lambda d: d.index))
+    return 出
 
 
 def 问模型(
