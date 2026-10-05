@@ -23,6 +23,10 @@ type Props = {
   onSendAnyway: () => void
   /** 本轮处置清单。 */
   round: Disposition[]
+  /** 这一屏还没有任何事发生过 —— 处置清单改用将来式，见 `RoundPanel.待确认`。 */
+  待确认?: boolean
+  /** 「客服点发送」那条已经发出去了 —— 清单上念「已发送」，见 `RoundPanel.已发本轮`。 */
+  已发本轮?: boolean
 }
 
 /**
@@ -45,6 +49,8 @@ export default function Composer({
   onFixConflict,
   onSendAnyway,
   round,
+  待确认,
+  已发本轮,
 }: Props) {
   return (
     <div className="shrink-0 border-t border-line bg-panel">
@@ -89,7 +95,7 @@ export default function Composer({
         </button>
       </div>
 
-      <RoundPanel items={round} />
+      <RoundPanel items={round} 待确认={待确认} 已发本轮={已发本轮} />
     </div>
   )
 }

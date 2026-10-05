@@ -43,9 +43,36 @@ type Props = {
   报备态: 报备态
   /** 审批回来、还没发出去的那句话（`剧本事件.待发` 的第一条）。 */
   待发句?: ChatMessage
+  /**
+   * `待发句` 下面那行小字 · 和单号拼在一起。**不传就是演示线那句。**
+   *
+   * 演示线那句是「这句是按审批口径写好的」—— 话术是 primer 写的，审批批的就是它。
+   * 真窗口上那句话**不是 primer 写的**：它是当时客服真发出去的原话（`App.待发句`），
+   * 说成「按审批口径写好的」是假话。两种会话各说各的实话，所以这一句得从外面传。
+   */
+  待发附注?: string
+  /**
+   * ② 那一档的话已经发出去了（见 `App` 的 `本轮已发`）。
+   *
+   * 卡片**不会自己撤**（线一第 4 格那张和第 3 格是同一句话），所以「发过了」
+   * 得由这里说出来：把［采用］换成一行「已发送」。
+   *
+   * # 为什么非要收口不可（2026-10-05 实测）
+   *
+   * 不收口时那一格写着「✍️ 这条得你来发 · 涉个体差异」加一颗亮着的［采用］
+   * —— 照着卡片做的人（他就是被这么叫的）再点一次［采用］→［发送］，
+   * **同一句话就在聊天区连出两遍**。两次都是单击，没有一处报错。
+   */
+  已发本轮?: boolean
 }
 
-/** 主卡描边随形态变，这是右栏里唯一区分优先级的视觉信号。 */
+/**
+ * 主卡描边随形态变，这是右栏里唯一区分优先级的视觉信号。
+ *
+ * 三种形态，对应清单 §3.4 的 ②③④ 三档：② 蓝（等你点一下）、
+ * ③ 琥珀（报备）、④ 红（转交）。**① `AI直发` 不在这里** ——
+ * 它不做卡，右栏那一轮走空态（见 `PrimerPanel`）。
+ */
 const 描边: Record<Advice['形态'], string> = {
   需要话术: 'border-line',
   需要授权: 'border-hold-line',
@@ -167,10 +194,17 @@ function SentList({ 已代发 }: { 已代发: NonNullable<Advice['已代发']> }
           {/* 这一句引的是哪几条。和底下依据清单一**不是**一回事：
               底下那份是「本轮六源查到了什么」（`N/6` 那个分母），
               这份是「这一句话引了哪几条」。别把两块并成一个
-              （`api/证据.py` 的模块文档串专门写了为什么）。 */}
-          <p className="mt-0.5 text-note leading-relaxed text-ink-4">
-            {条.依据.map((e) => `${e.序号} ${e.出处}`).join('　')}
-          </p>
+              （`api/证据.py` 的模块文档串专门写了为什么）。
+
+              **空着就整行不画。** 真窗口那一档的 `依据` 恒为 `[]` —— 接口只回报
+              本轮的六源命中，说不出「这一句引了哪几条」（`App.带代发` 那段）。
+              照画的话是一行有上边距的空 `<p>`：读起来像「这句话没有依据」，而它
+              实际的意思是「这一趟我们拿不到依据」—— 两件事，分开说。 */}
+          {条.依据.length ? (
+            <p className="mt-0.5 text-note leading-relaxed text-ink-4">
+              {条.依据.map((e) => `${e.序号} ${e.出处}`).join('　')}
+            </p>
+          ) : null}
         </div>
       ))}
     </div>
@@ -193,6 +227,8 @@ export default function AdviceCard({
   转交,
   报备态,
   待发句,
+  待发附注 = '这句是按审批口径写好的',
+  已发本轮,
 }: Props) {
   return (
     <section className={`rounded-md border bg-panel ${描边[advice.形态]}`}>
@@ -219,13 +255,19 @@ export default function AdviceCard({
                 {advice.话术}
               </p>
             ) : null}
-            <button
-              type="button"
-              onClick={onUseScript}
-              className="mt-2 w-full rounded bg-brand py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
-            >
-              采用
-            </button>
+            {已发本轮 ? (
+              <p className="mt-2 rounded border border-line-soft bg-canvas py-1.5 text-center text-body text-ink-3">
+                已发送 · 这一轮不用再发一遍
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={onUseScript}
+                className="mt-2 w-full rounded bg-brand py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
+              >
+                采用
+              </button>
+            )}
           </div>
         ) : null}
 
@@ -258,7 +300,7 @@ export default function AdviceCard({
                     ) : null}
                     <p className="mt-1.5 text-body font-medium text-hold-ink">请答复顾客</p>
                     <p className="mt-0.5 text-note text-ink-4">
-                      报备单号 {报备.工单号} · 这句是按审批口径写好的
+                      报备单号 {报备.工单号} · {待发附注}
                     </p>
                     <button
                       type="button"
@@ -329,8 +371,8 @@ export default function AdviceCard({
         ) : null}
       </div>
 
-      {/* 卡级区块，**和三个形态并排**，不塞进任何一个里：第四步（需要话术）
-          和第七步（需要授权）都带 `已代发`，将来转交那一轮也一样 ——
+      {/* 卡级区块，**和三个形态并排**，不塞进任何一个里：第三步（需要话术）
+          和第六步（需要授权）都带 `已代发`，将来转交那一轮也一样 ——
           「AI 替你说了句话」这件事跟这一轮判成哪种输出没关系。 */}
       {advice.已代发?.length ? <SentList 已代发={advice.已代发} /> : null}
 

@@ -79,6 +79,8 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
   // 结束之后就不是初次了：这一次来访本身成了历史，五行里有真东西可说
   // （见 `Props.已结束`）。
   const 初次 = 以前?.length === 0 && !已结束
+  const 只有空历史 =
+    初次 && rows.every((row) => !row.值 || row.值 === '无' || row.值.startsWith('没有'))
 
   const 后段 = rows.slice(默认展开)
   const 折叠的 = expanded ? [] : 后段.filter((r) => !必须可见(r))
@@ -91,7 +93,7 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
         <span className="text-note text-ink-4">每条消息都重读</span>
       </header>
 
-      {初次 ? (
+      {只有空历史 ? (
         <p className="border-t border-line-soft px-3 py-2 text-xs leading-relaxed text-ink-3">
           初次会话
         </p>

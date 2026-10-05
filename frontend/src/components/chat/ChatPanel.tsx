@@ -1,10 +1,18 @@
-import { MessageSquare, MoreHorizontal, RefreshCw, SquareArrowOutUpRight } from 'lucide-react'
+import {
+  MessageSquare,
+  MoreHorizontal,
+  Pause,
+  Play,
+  RefreshCw,
+  RotateCcw,
+  SquareArrowOutUpRight,
+} from 'lucide-react'
 
 import { 查事实 } from '../../data/事实'
 import { 查禁语 } from '../../data/koujing'
 import type { 剧本 } from '../../data/剧本'
-import type { 播放状态 } from '../../hooks/use播放器'
-import type { Agent, ChatMessage, Session, ShopMetric } from '../../types'
+import { 停的样子, type 播放状态 } from '../../hooks/use播放器'
+import type { Agent, Session, ShopMetric } from '../../types'
 import Composer from './Composer'
 import MessageList from './MessageList'
 import MetricBar from './MetricBar'
@@ -18,14 +26,62 @@ type Props = {
   onSend: (text: string) => void
   /** 草稿存在会话上，切走再切回来不会丢。 */
   onDraftChange: (text: string) => void
-  /** 当前会话的演示剧本。普通会话没有 —— 播放器照样在，只是提示行换成消息。 */
+  /** 当前会话的演示剧本。普通会话没有 —— 那种会话的回放控制收在标题栏上（`回放键`）。 */
   剧本?: 剧本
   播放: 播放状态
-  /** 刚出现的那条消息，播放器提示行用。 */
-  当前消息?: ChatMessage
+  /**
+   * 这一屏那一轮里「客服点发送」那条，话已经发出去了（见 `App` 的 `本轮已发`）。
+   *
+   * 只影响「本轮处置」那一行的说法：`待你确认后发送` → `已发送`（31 §3.7 S10 后）。
+   */
+  本轮已发?: boolean
 }
 
-function ChatHeader({ session }: { session: Session }) {
+/**
+ * 真窗口那一条回放的控制 —— **收成一颗按钮，挂在标题栏上**（2026-10-05）。
+ *
+ * 真窗口要的是「点开看它演」，不是「拖刻度讲解」：不需要刻度条、速度档、
+ * 「跳到第 N 条」。它只剩两件事要人做 —— 让它演、让它停。演到头按钮变 ↻，
+ * 按一下从头再演一遍（`播放()` 在末格的语义就是回 0）。
+ *
+ * # 旁边那行琥珀字不是装饰
+ *
+ * `App.真窗口停` 那把刹车（建议得先被采纳）会按住时间线，那一刻按 ▶ **按不动**
+ * —— 没有这行字，演示的人只会以为播放器卡死了，然后一直按。它念的是
+ * `停的样子`，和演示线那条回放条上的一模一样（那一头写着为什么不许两处各拼一遍）。
+ */
+function 回放键({ 播放 }: { 播放: 播放状态 }) {
+  const 空 = 播放.总格数 === 0
+  const 演完 = !空 && 播放.已播格数 >= 播放.总格数
+
+  return (
+    <>
+      {播放.停在 ? (
+        <span className="shrink-0 text-note font-medium text-hold-ink">
+          {停的样子(播放.停在)}
+        </span>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={播放.在放 ? 播放.暂停 : 播放.播放}
+        disabled={空}
+        title={播放.在放 ? '暂停' : 演完 ? '从头重播' : '播放'}
+        className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand-hover disabled:bg-ink-4"
+      >
+        {播放.在放 ? (
+          <Pause size={12} fill="currentColor" />
+        ) : 演完 ? (
+          <RotateCcw size={12} />
+        ) : (
+          <Play size={12} fill="currentColor" />
+        )}
+      </button>
+    </>
+  )
+}
+
+function ChatHeader({ session, 回放 }: { session: Session; 回放?: 播放状态 }) {
   return (
     <div className="flex h-9 shrink-0 items-center justify-between border-b border-line-soft bg-panel px-3">
       <div className="flex items-center gap-1.5">
@@ -36,6 +92,8 @@ function ChatHeader({ session }: { session: Session }) {
         <span className="text-body text-ink-4">{session.会话ID}</span>
       </div>
       <div className="flex items-center gap-2 text-ink-3">
+        {回放 ? <回放键 播放={回放} /> : null}
+
         <button type="button" title="刷新" className="hover:text-ink-2">
           <RefreshCw size={14} />
         </button>
@@ -59,7 +117,7 @@ export default function ChatPanel({
   onDraftChange,
   剧本,
   播放,
-  当前消息,
+  本轮已发,
 }: Props) {
   const draft = session?.草稿 ?? ''
 
@@ -83,11 +141,13 @@ export default function ChatPanel({
 
       {session ? (
         <>
-          <ChatHeader session={session} />
-          {/* 回放条每个会话都有。`key` 挂会话号：切会话时把「跳到第 N 条」输入框
-              里残留的上一条会话的数字清掉，否则新会话一按回车会跳到一个莫名其妙的
-              位置。 */}
-          <播放器 key={session.会话ID} state={播放} 剧本={剧本} 当前消息={当前消息} />
+          <ChatHeader session={session} 回放={剧本 ? undefined : 播放} />
+          {/* 回放条**只给演示两条线**（2026-10-05）。真窗口那条路走标题栏上那颗
+              按钮 —— 两种会话的格子单位不一样（步 / 条），挤在同一排刻度上迟早
+              要换算，而换算过一次就错了（见 `播放器` 文件头）。
+              `key` 挂会话号：切会话时把「跳到第 N 步」输入框里残留的上一条会话的
+              数字清掉，否则新会话一按回车会跳到一个莫名其妙的位置。 */}
+          {剧本 ? <播放器 key={session.会话ID} state={播放} 剧本={剧本} /> : null}
           {session.订单 ? <ProductCard 订单={session.订单} /> : null}
           <MessageList
             messages={session.消息}
@@ -98,7 +158,7 @@ export default function ChatPanel({
                 ? undefined
                 : 剧本
                   ? `这段演示有 ${播放.总格数} 步，按播放从第 1 步开始`
-                  : `这条会话有 ${播放.总格数} 条消息，按下播放从第 1 条开始回放`
+                  : `这条会话有 ${播放.总格数} 条消息，点右上角 ▶ 从第 1 条开始演`
             }
           />
           {/* 「仍然发送」和「发送」眼下是同一个调用 —— 区别在意图：这一下是客服看过
@@ -115,6 +175,12 @@ export default function ChatPanel({
             onFixConflict={() => 冲突 && onDraftChange(冲突.建议)}
             onSendAnyway={() => send()}
             round={session.本轮处置 ?? []}
+            /* **没有剧本的会话，这一屏一件事都还没发生过。**
+               演示两条线不一样：剧本演到第 6 格，报备就是真演过了 ——
+               所以「已报备」那句话对它们是对的，对真窗口是假话。
+               判据就是这里这一条，`RoundPanel` 那边只负责照着念。 */
+            待确认={!剧本}
+            已发本轮={本轮已发}
           />
         </>
       ) : (

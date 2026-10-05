@@ -41,7 +41,8 @@ export default function SessionPanel({ sessions, activeId, onSelect }: Props) {
    *     和片子里线一先演的叙事顺序正好反过来。`合会话列表` 里那套「A 上 B 下」
    *     的置顶在分组模式下完全不起作用。
    *
-   * 关掉之后数组顺序说了算：小鹿、阿沅，之后 112 个真实窗口按最近时间倒序。开关留在
+   * 关掉之后数组顺序说了算：小鹿、阿沅，之后 112 个真实窗口按最近时间倒序，
+   * 最后 28 条垫底（顾客把同一件事说了两遍的，见 `data/重复会话.ts`）。开关留在
    * 屏幕上，要看分组随时能打开。
    */
   const [grouped, setGrouped] = useState(false)
