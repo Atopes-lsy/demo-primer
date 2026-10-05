@@ -66,7 +66,7 @@ from ..rules import guards, koujing
 #: 其中一条在「帮我看看订单发货没」上拿了 **0.803** —— 比真命中还高。
 空壳词 = ("欢迎光临", "有什么可以帮", "有什么能帮", "很高兴为您服务")
 
-#: 短于这个长度的一律丢。客服那 495 条里有一批「亲亲稍等哦」。
+#: 不高于这个长度的一律丢。客服那 495 条里有一批「亲亲稍等哦」。
 寒暄长度 = 20
 
 #: 嵌入函数的形状。`检索/先例库` 只认这一个口子，测试注假的就是换它。
@@ -175,3 +175,48 @@ def _成条(
             场景=f"{答法行.get('scene_major', '')}/{答法行.get('scene_minor', '')}",
         ),
     )
+
+
+def 余弦(甲: Sequence[float], 乙: Sequence[float]) -> float:
+    """余弦相似度。**维度对不上或有一头是空的一律回 0** —— 宁可不召回，
+    不许拿两条不同维度的向量瞎比（那会得到 0.7 这种看着正常的数）。"""
+    if not 甲 or not 乙 or len(甲) != len(乙):
+        return 0.0
+    点 = sum(x * y for x, y in zip(甲, 乙))
+    长 = math.sqrt(sum(x * x for x in 甲)) * math.sqrt(sum(y * y for y in 乙))
+    return 点 / 长 if 长 else 0.0
+
+
+def _答法克隆(甲: str, 乙: str) -> bool:
+    """两句答法是不是「同一套话换了个客服名」。
+
+    **判据用字面（2-gram 重合率），不另存答法向量**：存了库文件翻倍，也会让
+    「索引文本 ＝ 情境」这条拍板变得含糊。尺子借用 G4 那把
+    （`guards.G4重复阈值`）—— 它量的就是「同一句发了两遍」。
+    """
+    甲集, 乙集 = guards.词集(甲), guards.词集(乙)
+    if not 甲集 or not 乙集:
+        return False
+    return len(甲集 & 乙集) / min(len(甲集), len(乙集)) >= guards.G4重复阈值
+
+
+def 嵌条目(条目们: Sequence[先例], *, 嵌: 嵌入函数 = 嵌文本) -> tuple[先例, ...]:
+    """给每条嵌上情境向量。**条数对不上就抛** —— 那说明返回顺序也不是我们以为的
+    那个顺序，静默配上等于把整个库配错。"""
+    if not 条目们:
+        return ()
+    向量们 = 嵌([t.情境 for t in 条目们])
+    if len(向量们) != len(条目们):
+        raise ValueError(f"嵌入回来的条数对不上：{len(向量们)} ≠ {len(条目们)}")
+    return tuple(replace(t, 向量=tuple(v)) for t, v in zip(条目们, 向量们))
+
+
+def 去冗(条目们: Sequence[先例]) -> tuple[先例, ...]:
+    """同一件事被问过十几次，只留先到的那条。贪心，顺序敏感 —— 所以取材那边
+    按 `会话ID` 排过序，重建两次是同一份结果。"""
+    留: list[先例] = []
+    for 条 in 条目们:
+        if 条.向量 and any(余弦(条.向量, 有.向量) >= 召回去重 for 有 in 留 if 有.向量):
+            continue
+        留.append(条)
+    return tuple(留)
