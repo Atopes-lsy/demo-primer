@@ -10,6 +10,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from app.data.装载器 import 聊天记录表
@@ -192,3 +195,72 @@ def test_去冗没向量的条目也留着() -> None:
     """没嵌过的条目（`向量=()`）不参与比较，直接留 —— 静默丢数据才是坑。"""
     条们 = [先例库.先例("甲", "答甲", "S1"), 先例库.先例("乙", "答乙", "S2")]
     assert 先例库.去冗(条们) == tuple(条们)
+
+
+# ── 库文件 ──────────────────────────────────────────────
+
+
+def _写(tmp_path, 条们=None, *, 嵌入模型="text-embedding-v4", 版本=1):
+    路径 = tmp_path / "先例库.json"
+    数据 = {
+        "版本": 版本,
+        "嵌入模型": 嵌入模型,
+        "条数": len(条们 or ()),
+        "条目": [
+            {"情境": t.情境, "答法": t.答法, "会话ID": t.会话ID, "场景": t.场景,
+             "向量": list(t.向量)}
+            for t in (条们 or ())
+        ],
+    }
+    路径.write_text(json.dumps(数据, ensure_ascii=False), encoding="utf-8")
+    return 路径
+
+
+def test_写库再读回来_分量圆到六位(tmp_path) -> None:
+    """不圆是 3.05 MB，圆到 6 位是 1.45 MB，对 0.63／0.95 这两个阈值是碾压精度。"""
+    路径 = tmp_path / "先例库.json"
+    条 = 先例库.先例("问退货", "答退货", "S1", "补发换货/破损换货", (0.1234567891, 1.0))
+    assert 先例库.写库([条], 嵌入模型="text-embedding-v4", 路径=路径) == 1
+    读回, 模型 = 先例库._读库(路径)
+    assert 模型 == "text-embedding-v4"
+    assert 读回[0].向量 == (0.123457, 1.0)
+    assert 读回[0].情境 == "问退货" and 读回[0].场景 == "补发换货/破损换货"
+
+
+def test_文件不在当空库(tmp_path) -> None:
+    assert 先例库._读库(tmp_path / "没有这个文件.json") == ([], "")
+
+
+def test_文件坏了当空库(tmp_path) -> None:
+    """半截 JSON、被别的进程写坏 —— 都不许让判定 500。"""
+    路径 = tmp_path / "先例库.json"
+    路径.write_text('{"版本": 1, "条目": [', encoding="utf-8")
+    assert 先例库._读库(路径) == ([], "")
+
+
+def test_版本对不上当空库(tmp_path) -> None:
+    路径 = _写(tmp_path, [先例库.先例("甲", "答甲", "S1", 向量=(1.0,))], 版本=99)
+    assert 先例库._读库(路径) == ([], "")
+
+
+def test_取库只读一次盘(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", _写(tmp_path, [先例库.先例("甲", "答甲", "S1", 向量=(1.0,))]))
+    assert [t.情境 for t in 先例库.取库()] == ["甲"]
+    先例库.库路径.write_text(
+        json.dumps({"版本": 1, "嵌入模型": "text-embedding-v4", "条数": 0, "条目": []}),
+        encoding="utf-8",
+    )
+    assert [t.情境 for t in 先例库.取库()] == ["甲"], "第二次取库又读了盘"
+    先例库.清空()
+    assert 先例库.取库() == []
+    先例库.清空()
+
+
+def test_嵌入模型对不上就当空库(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """库是 text-embedding-v3 嵌的，现在配的是 v4 —— 两批向量不在一个空间里，
+    比出来的分数是随机的。**宁可不召回。**"""
+    先例库.清空()
+    monkeypatch.setattr(先例库, "库路径", _写(tmp_path, [先例库.先例("甲", "答甲", "S1", 向量=(1.0,))], 嵌入模型="text-embedding-v3"))
+    assert 先例库.取库() == []
+    先例库.清空()
