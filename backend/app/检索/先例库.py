@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import re
 import sys
@@ -28,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from ..data.装载器 import 聊天记录表
-from ..llm.客户端 import 嵌文本, 先例库模型
+from ..llm.客户端 import 嵌文本, 先例库模型, 先例库密钥
 from ..rules import guards, koujing
 
 #: 仓库根。本文件在 `backend/app/检索/` 下，往上四层。
@@ -56,6 +57,9 @@ from ..rules import guards, koujing
 
 #: 召回几条。3 条是 few-shot 的常见量 —— 再多会把 prompt 撑成先例的复读现场。
 召回条数 = 3
+
+#: 召回函数的口子。**`llm/组装提示` 从这里转发**，`话术生成` 拿它当默认参数的形状。
+召回函数 = Callable[[str, int], Sequence[str]]
 
 #: 占位话：客服用它拖时间，没有任何信息。**看开头**。
 占位头 = ("稍等", "亲稍等", "亲亲稍等", "在的呢", "正在为您查询", "为您查询")
@@ -230,6 +234,9 @@ _活库模型 = ""
 _回写表: dict[tuple[str, int], 先例] = {}
 锁 = threading.RLock()
 
+#: 读不了库时要说一声 —— 静默当空库和「库里没有贴得上的先例」在屏幕上长得一样。
+日志 = logging.getLogger(__name__)
+
 
 def _读库(路径: Path | None = None) -> tuple[list[先例], str]:
     """盘上的库 → `(条目, 嵌入模型)`。**读不了就 `([], "")`，绝不抛。**
@@ -252,7 +259,8 @@ def _读库(路径: Path | None = None) -> tuple[list[先例], str]:
             )
             for x in 原["条目"]
         ]
-    except Exception:  # noqa: BLE001 —— 见文档串
+    except Exception as 错:  # noqa: BLE001 —— 见文档串
+        日志.warning("先例库读不了，当空库：%r", 错)
         return [], ""
     return 条目, str(原.get("嵌入模型", ""))
 
@@ -305,3 +313,57 @@ def 清空() -> None:
     with 锁:
         _活库, _活库模型 = None, ""
         _回写表.clear()
+
+
+# ── 召回（读侧）────────────────────────────────────────────
+
+
+def 召回先例(
+    主张: str,
+    k: int = 召回条数,
+    *,
+    嵌: 嵌入函数 = 嵌文本,
+    库: Sequence[先例] | None = None,
+) -> tuple[str, ...]:
+    """主张 → 最多 `k` 条单行文本 `买家：… ／ 客服：…`（给 `组装提示` 第 6 块）。
+
+    **一个包都不发**的三种情况先返回：库没加载／没密钥／条目为空。这不是优化 ——
+    `话术生成.生成话术` 的默认参数就是它，测试里那十几处调用全靠这三条不打网络。
+
+    **任何异常一律吞掉返回 `()`**：判定链路跑在半路上，召回是**锦上添花**那一环，
+    它坏了不该让客服那一屏白掉。
+    """
+    if not k:
+        return ()
+    try:
+        条目们 = 库 if 库 is not None else 取库()
+        # 密钥检查在**发请求之前** —— 这一条也是测试友好性的载重件：`库` 是显式
+        # 传进来的时候（测试里就是这么传的）也得先看密钥，否则那几条「没密钥不
+        # 发请求」的测试会真打出去。
+        if not 条目们 or not 先例库密钥():
+            return ()
+        向量们 = 嵌([主张])
+        if not 向量们:
+            return ()
+        主张向量 = 向量们[0]
+        候选 = sorted(
+            ((余弦(主张向量, t.向量), t) for t in 条目们 if t.向量),
+            key=lambda 对: 对[0],
+            reverse=True,
+        )
+    except Exception:  # noqa: BLE001 —— 见文档串
+        return ()
+
+    取: list[先例] = []
+    for 分, t in 候选:
+        if 分 < 先例阈值:
+            break
+        # 两道去冗：情境近的、答法克隆的，都跳过看下一条（保证 3 条不克隆）
+        if any(余弦(t.向量, 有.向量) >= 召回去重 for 有 in 取):
+            continue
+        if any(_答法克隆(t.答法, 有.答法) for 有 in 取):
+            continue
+        取.append(t)
+        if len(取) >= k:
+            break
+    return tuple(f"买家：{t.情境} ／ 客服：{t.答法}" for t in 取)
