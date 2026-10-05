@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -238,6 +239,26 @@ def test_文件坏了当空库(tmp_path) -> None:
     assert 先例库._读库(路径) == ([], "")
 
 
+def test_文件不在不出声文件坏了要出声(
+    tmp_path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """`_读库` 把 `FileNotFoundError` 和别的异常分开写，就是为了这一条：
+    **没建库是常态，不出声；库读坏了是事故，必须留一声。**
+
+    不出声的话，「还没建库」和「库坏了」在屏幕上长得一模一样 —— 库里的条目
+    一条都召回不出来，而没有任何地方能区分这两件事，谁都查不出是库坏了。
+    """
+    with caplog.at_level(logging.WARNING, logger=先例库.日志.name):
+        assert 先例库._读库(tmp_path / "没有这个文件.json") == ([], "")
+        assert caplog.records == [], "还没建库是常态，不该出声"
+
+        路径 = tmp_path / "先例库.json"
+        路径.write_text('{"版本": 1, "条目": [', encoding="utf-8")
+        assert 先例库._读库(路径) == ([], "")
+        assert len(caplog.records) == 1, "库坏了要留一声"
+        assert "先例库读不了" in caplog.records[0].getMessage()
+
+
 def test_版本对不上当空库(tmp_path) -> None:
     路径 = _写(tmp_path, [先例库.先例("甲", "答甲", "S1", 向量=(1.0,))], 版本=99)
     assert 先例库._读库(路径) == ([], "")
@@ -285,10 +306,6 @@ class _记一笔:
         文本 = list(文本们)
         self.收到.extend(文本)
         return [self._给.get(t, [0.0, 0.0]) for t in 文本]
-
-
-def _库(*对: tuple[str, list[float]]) -> list:
-    return [先例库.先例(f"情境{i}", f"答法{i}", f"S{i}", 向量=tuple(v)) for i, (_, v) in enumerate(对)]
 
 
 @pytest.fixture
@@ -398,3 +415,55 @@ def test_答法克隆那一支真的拦得住(有密钥) -> None:
     ]
     取 = 先例库.召回先例("问退货", 库=库, 嵌=假)
     assert 取 == ("买家：我要退货 ／ 客服：亲，您把货寄回，这边收到就给您退哈~",)
+
+
+# ── 接线（spec §五／§七）──────────────────────────────────
+
+
+def test_组装提示那三个名字就是先例库这三个() -> None:
+    """**转发，不是包装。** 包一层的话 `话术生成` 的默认参数就和 `先例库` 脱钩了，
+    而那种错表现为「注入点一直是空的」，谁都看不出来。"""
+    from app.llm import 组装提示
+
+    assert 组装提示.召回先例 is 先例库.召回先例
+    assert 组装提示.召回条数 == 先例库.召回条数 == 3
+    assert 组装提示.召回函数 is 先例库.召回函数
+
+
+def test_话术生成的默认召回就是先例库那条() -> None:
+    """光有转发不算接上 —— 得看 `生成话术` 的默认参数拿到的是不是它。"""
+    import inspect
+
+    from app.llm import 话术生成
+
+    参 = inspect.signature(话术生成.生成话术).parameters["召回先例"]
+    assert 参.default is 先例库.召回先例
+
+
+def test_先例进第6块且没先例就不出这块() -> None:
+    from app.llm.组装提示 import 组装提示 as 拼提示
+    from app.rules.pipeline import 判成, 输出类型
+
+    判 = 判成(
+        主张="快递到哪了",
+        输出=输出类型.AI直发,
+        说明="",
+        依据=(),
+        依据编号=(),
+        层="第1层",
+        权限去向="",
+        交接分类="",
+        涉及个体差异=False,
+        需边界句=False,
+    )
+    有 = 拼提示(判, (), None, (), ("买家：快递到哪了 ／ 客服：亲，包裹到苏州了~",), "", ())
+    assert "买家：快递到哪了 ／ 客服：亲，包裹到苏州了~" in 有
+    空 = 拼提示(判, (), None, (), (), "", ())
+    assert "别人家" not in 空
+
+
+def test_系统提示改成了范本加贴近实质() -> None:
+    from app.llm.组装提示 import 系统提示
+
+    assert "只学语气和节奏，事实一个都不许搬" not in 系统提示
+    assert "数字" in 系统提示 and "依据" in 系统提示
