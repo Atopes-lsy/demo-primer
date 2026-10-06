@@ -7,6 +7,7 @@ import { AI名义 } from '../../data/判定'
 import CustomerStateCard from './CustomerStateCard'
 import HandoverPacket from './HandoverPacket'
 import EvidenceList from './EvidenceList'
+import AutoAdviceCard from './AutoAdviceCard'
 
 /**
  * 交接包整块**暂时不上屏**（2026-10-04 拍：这块暂时不做）。
@@ -44,6 +45,9 @@ type Props = {
   session: Session | null
   六源依据?: Evidence[]
   验收模式?: boolean
+  先例数量?: number
+  onReviewArchive?: () => void
+  已模拟入库?: boolean
   onUseScript: () => void
   onReport: () => void
   onHandover: () => void
@@ -206,6 +210,9 @@ export default function PrimerPanel({
   session,
   六源依据,
   验收模式 = false,
+  先例数量,
+  onReviewArchive,
+  已模拟入库,
   onUseScript,
   onReport,
   onHandover,
@@ -268,14 +275,18 @@ export default function PrimerPanel({
       </div>
 
       {/* 数据源标记。**常驻，而且不挂在 `import.meta.env.DEV` 后面** —— 见 `兜底`。 */}
-      <p
-        className={`flex shrink-0 items-center justify-end gap-1.5 border-b border-line px-3 py-1.5 text-body font-medium ${
+      <div className="primer-brand-row">
+        <span className="primer-brand-mark" aria-hidden="true">P</span>
+        <div className="primer-brand-name"><strong>Primer</strong><span>AI 客服协作助手</span></div>
+        <p
+        className={`primer-connection ${
           全连 ? 'bg-panel text-ink-4' : 'bg-hold-soft text-hold-ink'
         }`}
       >
         <span className={`size-1.5 shrink-0 rounded-full ${全连 ? 'bg-success' : 'bg-hold'}`} />
         {验收模式 ? '本地验收 · 未连接后台' : 全连 ? '接口 · 已连' : `剧本兜底 · ${兜底.join('、')}`}
       </p>
+      </div>
 
       {/* 后端拒绝**不出来是安静的**：下一步什么都不会发生，而屏幕上看着就像
           「这个按钮没用」。所以它得占一行，并且占在标记正下方。 */}
@@ -314,6 +325,7 @@ export default function PrimerPanel({
 
           {session.建议 ? (
             <AdviceCard
+              处理话术={session.本轮处置?.find((d) => d.输出 === '报备')?.话术}
               key={`advice-${session.会话ID}-${session.建议.形态}`}
               advice={session.建议}
               onUseScript={onUseScript}
@@ -385,21 +397,11 @@ export default function PrimerPanel({
                    那句话已经发出去了，读起来却像还压在手里等人点。
 
                「已自动发送」在 2026-10-05 之后是真的，就是现在这句。 */
-            <div className="primer-advice-empty primer-surface-in rounded-[18px] border border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
-              {AI直发话术.length ? 'AI 直接发送' : '本轮无需客服动作'}
-              <br />
-              <span className="text-note">
-                {AI直发话术.length ? '已自动发送 · 以你的名义' : '没有需要处理的主张'}
-              </span>
-              {AI直发话术.length ? (
-                <div className="mt-2 rounded border border-ai-line bg-ai-soft px-2 py-1.5 text-left text-xs leading-relaxed text-ai-ink">
-                  {AI直发话术[0]}
-                </div>
-              ) : null}
-            </div>
+            <AutoAdviceCard key={`ai-${session.会话ID}`} scripts={AI直发话术}
+              onArchive={验收模式 ? onReviewArchive : undefined} archived={已模拟入库} />
           )}
 
-          <EvidenceList key={`evidence-${session.会话ID}`} evidence={六源依据 ?? session.建议?.依据} />
+          <EvidenceList key={`evidence-${session.会话ID}`} evidence={六源依据 ?? session.建议?.依据} precedentCount={先例数量} review={验收模式} />
 
           {/* 暂时不画 —— 见 `显示交接包`。上面那个 `交接包` 照旧算着，翻回
               `true` 就上屏，中间不用补任何东西。 */}

@@ -13,6 +13,8 @@ export type 报备态 = '等审批' | '等发送' | '已答复'
 
 type Props = {
   advice: Advice
+  /** 现有本轮处置提供的话术，仅预览，不在 UI 中推导或自动发送。 */
+  处理话术?: string
   /** 「采用」：只把话术带进输入框，**不发** —— 发不发由客服按发送决定。 */
   onUseScript: () => void
   /** 「一键报备」：后台走审批，对话还在客服手里。 */
@@ -64,11 +66,6 @@ type Props = {
  * ③ 琥珀（报备）、④ 红（转交）。**① `AI直发` 不在这里** ——
  * 它不做卡，右栏那一轮走空态（见 `PrimerPanel`）。
  */
-const 描边: Record<Advice['形态'], string> = {
-  需要话术: 'border-line',
-  需要授权: 'border-hold-line',
-  有风险: 'border-risk-line',
-}
 
 /**
  * 已代发清单 —— 本轮 AI 已经以客服名义发出去的话。
@@ -133,6 +130,7 @@ function SentList({ 已代发 }: { 已代发: NonNullable<Advice['已代发']> }
  */
 export default function AdviceCard({
   advice,
+  处理话术,
   onUseScript,
   onReport,
   onHandover,
@@ -144,157 +142,69 @@ export default function AdviceCard({
   待发附注 = '这句是按审批口径写好的',
   已发本轮,
 }: Props) {
+  const report = advice.形态 === '需要授权'
+  const risk = advice.形态 === '有风险'
+  const tone = risk ? 'risk' : report ? 'report' : 'confirm'
+  const script = risk ? advice.话术建议 : advice.话术 ?? 处理话术
+  const sources = advice.依据.filter((e) => e.用上)
   return (
-    <>
-      <section
-        className={`primer-advice primer-surface-in overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
-      >
-      <header className="flex items-center justify-between px-3 py-2">
-        <h2 className="text-base font-semibold text-ink">Primer 建议</h2>
+    <section data-tone={tone} className="primer-advice primer-structured">
+      <header>
+        <h2>Primer 建议</h2>
+        <span className="primer-judgement">{risk ? '必须转交' : report ? '需要报备' : 已发本轮 ? '已发送' : '待客服确认'}</span>
       </header>
-
-      <div className="primer-advice-body px-3 pb-3">
-        <p title={`AI 判断：${advice.判断}`} className="primer-judgement ml-auto block w-fit rounded-full bg-canvas/80 px-3 py-1.5 text-body font-medium text-ink-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ring-1 ring-white/80">
-          {advice.形态 === '有风险' ? '必须转交' : advice.形态 === '需要授权' ? '需要报备' : '客服确认发送'}
-        </p>
-
-        {/* 需要话术：给出成稿，客服看一眼点一下 */}
-        {advice.形态 === '需要话术' ? (
-          <div className="mt-2">
-            <p className="text-base font-semibold text-ink">{advice.标题}</p>
-            {advice.说明.map((line) => (
-              <p key={line} className="mt-1 text-xs leading-relaxed text-ink-2">
-                {line}
+      <div className="primer-advice-body">
+        <h3 className="primer-advice-title">{advice.标题}</h3>
+        <ol className="primer-step-flow" key={`${advice.判断}-${script ?? ''}`}>
+          <li className="primer-step">
+            <span className="primer-step-number" aria-hidden="true">1</span>
+            <div><span className="primer-step-label">判断 <span className="primer-help" tabIndex={0} aria-label={`判断说明：${advice.说明.join('；')}`}>?<span className="primer-help-popover">{advice.说明.map((line) => <span key={line}>{line}</span>)}</span></span></span>
+              <p className="primer-step-judgement" title={advice.判断}>{risk ? advice.风险标签 ?? advice.判断 : advice.判断}</p>
+            </div>
+          </li>
+          <li className="primer-step">
+            <span className="primer-step-number" aria-hidden="true">2</span>
+            <div><span className="primer-step-label">{risk ? '转交说明' : '建议回复'}</span>
+              {script ? <p className="primer-script">{script}</p>
+                : <p className="primer-script">{advice.说明.join(' ')}</p>}
+              <p className="primer-source-caption" title={sources.map((e) => e.出处).join('；')}>
+                六源依据 · 本轮采用 {sources.length} 源
               </p>
-            ))}
-            {advice.话术 ? (
-              <p className="mt-2 rounded-[12px] border border-white/80 bg-canvas/80 px-3 py-2.5 text-xs leading-relaxed text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-                {advice.话术}
-              </p>
-            ) : null}
-            {已发本轮 ? (
-              <p className="mt-2 rounded border border-line-soft bg-canvas py-1.5 text-center text-body text-ink-3">
-                已发送 · 这一轮不用再发一遍
-              </p>
-            ) : (
-              <button
-                type="button"
-                onClick={onUseScript}
-                className="primer-action mt-2 h-10 w-full rounded-[14px] bg-brand text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(49,95,75,0.48)] hover:bg-brand-hover"
-              >
-                采用
-              </button>
-            )}
-          </div>
-        ) : null}
-
-        {/* 需要授权：事该办但越过我的额度，报备后台审批，顾客无感 */}
-        {advice.形态 === '需要授权' ? (
-          <div className="mt-2">
-            <p className="text-base font-semibold text-hold-ink">{advice.标题}</p>
-            {advice.说明.map((line) => (
-              <p key={line} className="mt-1 text-xs leading-relaxed text-ink-2">
-                {line}
-              </p>
-            ))}
-
-            {报备 ? (
-              <>
-                <p className="mt-2 rounded border border-hold-line bg-hold-soft py-1.5 text-center text-body text-hold-ink">
-                  {报备态 === '等审批'
-                    ? '已提交组长审批 · 顾客无感知'
-                    : '组长已批准 · 顾客无感知'}
-                </p>
-
-                {/* 审批回来了：把要发的那句摆出来，客服看一眼再点。发一句他没看过
-                    的话成了盲发 —— 这一下按下去是要算在他头上的。 */}
-                {报备态 === '等发送' ? (
-                  <>
-                    {待发句 ? (
-                      <p className="mt-1.5 rounded border border-line-soft bg-canvas px-2 py-2 text-body leading-relaxed text-ink">
-                        {待发句.message_text}
-                      </p>
-                    ) : null}
-                    <p className="mt-1.5 text-body font-medium text-hold-ink">请答复顾客</p>
-                    <p className="mt-0.5 text-note text-ink-4">
-                      报备单号 {报备.工单号} · {待发附注}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={onSendPending}
-                      className="primer-action mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
-                    >
-                      一键发送
-                    </button>
-                  </>
-                ) : (
-                  <div className="mt-1.5 rounded border border-line-soft bg-canvas px-2 py-1.5">
-                    <p className="text-body font-medium text-ink-2">
-                      {报备态 === '已答复'
-                        ? '已答复顾客'
-                        : `等待组长审批 · 已过 ${报备.等待分钟} 分钟`}
-                    </p>
-                    <p className="mt-0.5 text-note text-ink-4">
-                      {报备态 === '已答复'
-                        ? '答复里承诺的回访由专员接，这轮不用再跟'
-                        : '审批回来会提示你答复顾客，别忘记跟进'}
-                    </p>
-                    <p className="mt-0.5 text-note text-ink-4">报备单号 {报备.工单号}</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={onReport}
-                className="primer-action mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
-              >
-                一键报备
-              </button>
-            )}
-          </div>
-        ) : null}
-
-        {/* 有风险：H1–H4 命中，对话交出去 */}
-        {advice.形态 === '有风险' ? (
-          <div className="mt-2">
-            <p className="rounded border border-risk-line bg-risk-soft px-2 py-1.5 text-xs font-semibold text-risk-ink">
-              {advice.风险标签}
-            </p>
-            {advice.说明.map((line) => (
-              <p key={line} className="mt-1 text-xs leading-relaxed text-ink-2">
-                {line}
-              </p>
-            ))}
-            {advice.话术建议 ? (
-              <p className="mt-1.5 text-xs leading-relaxed text-ink-2">{advice.话术建议}</p>
-            ) : null}
-
-            {转交 ? (
-              <div className="mt-2 rounded border border-risk-line bg-risk-soft py-1.5 text-center">
-                <p className="text-body text-risk-ink">对话将转出，你不必再跟进</p>
-                <p className="mt-0.5 text-note text-risk-ink-2">交接单号 {转交.工单号}</p>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={onHandover}
-                className="primer-action mt-2 h-10 w-full rounded-[14px] bg-danger text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(172,68,61,0.5)] hover:opacity-90"
-              >
-                立即转交
-              </button>
-            )}
-          </div>
-        ) : null}
+            </div>
+          </li>
+          <li className="primer-step primer-step-execution">
+            <span className="primer-step-number" aria-hidden="true">3</span>
+            <div><span className="primer-step-label">执行操作</span>
+              {!report && !risk ? 已发本轮 ? (
+                <p role="status" className="primer-completion">已发送 · 这一轮不用再发一遍</p>
+              ) : (
+                <button type="button" onClick={onUseScript} className="primer-action primer-primary">采用到输入框</button>
+              ) : null}
+              {report ? 报备 ? (
+                <div className="primer-action-result" role="status">
+                  <p className="primer-completion">{报备态 === '等审批' ? '已报备 · 等待审批' : 报备态 === '等发送' ? '审批已通过 · 待发送' : '已答复顾客'}</p>
+                  {报备态 === '等发送' && <>
+                    {待发句 && <p className="primer-script">{待发句.message_text}</p>}
+                    <button type="button" onClick={onSendPending} className="primer-action primer-primary">一键发送</button>
+                  </>}
+                  <p className="primer-action-note">报备单号 {报备.工单号} · {报备态 === '等审批' ? `等待 ${报备.等待分钟} 分钟，对话仍由你接待` : 报备态 === '等发送' ? 待发附注 : '回访由专员接续'}</p>
+                </div>
+              ) : (
+                <button type="button" onClick={onReport} className="primer-action primer-primary">一键报备</button>
+              ) : null}
+              {risk ? 转交 ? (
+                <div className="primer-action-result" role="status">
+                  <p className="primer-completion">已转交 · 由专席接续</p>
+                  <p className="primer-action-note">转交单号 {转交.工单号} · 你不必再跟进</p>
+                </div>
+              ) : (
+                <button type="button" onClick={onHandover} className="primer-action primer-primary">立即转交</button>
+              ) : null}
+            </div>
+          </li>
+        </ol>
       </div>
-
-      {/* 卡级区块，**和三个形态并排**，不塞进任何一个里：第三步（需要话术）
-          和第六步（需要授权）都带 `已代发`，将来转交那一轮也一样 ——
-          「AI 替你说了句话」这件事跟这一轮判成哪种输出没关系。 */}
       {advice.已代发?.length ? <SentList 已代发={advice.已代发} /> : null}
-
-      </section>
-
-    </>
+    </section>
   )
 }
