@@ -39,6 +39,7 @@ from app.rules.guards import 依据条目, 闸门命中
 from app.rules.koujing import 加载口径表
 from app.rules.pipeline import 判成, 输出类型
 from app.rules.triggers import 触发, 触发编号
+from app.检索.先例库 import 取材来源, 召回条目
 from tests.假模型 import 假模型
 
 口径表 = 加载口径表()
@@ -451,7 +452,11 @@ def test_先例只学语气不搬事实() -> None:
     先例是**别的买家**的事，照搬就命中 G4（那是给那个买家的承诺）。
     """
     问, 记录 = 假模型(干净)
-    假先例 = lambda 主张, k=3: ("亲亲别急哈，我这就去看～",)  # noqa: E731
+    # 召回口子交的是 `召回条目`（不是拼好的字符串）—— 拼成什么样是 `组装提示`
+    # 的事，因为同一条摆进哪一块要看 `.来源`。
+    假先例 = lambda 主张, k=3: (  # noqa: E731
+        召回条目(情境="催发货", 答法="亲亲别急哈，我这就去看～", 来源=取材来源),
+    )
     生成话术(造判成(), (), (), 口径表, (), 召回先例=假先例, 问=问)
 
     提示 = 记录[0][1]
