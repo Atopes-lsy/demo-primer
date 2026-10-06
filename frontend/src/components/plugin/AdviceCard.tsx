@@ -107,7 +107,7 @@ function EvidenceList({ advice }: { advice: Advice }) {
   const 命中源 = 六源.filter((序号) => 按源.get(序号)?.some((e) => e.用上))
 
   return (
-    <section className="overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
+    <section className="primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -226,7 +226,7 @@ export default function AdviceCard({
   return (
     <>
       <section
-        className={`overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
+        className={`primer-surface-in overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
       >
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-base font-semibold text-ink">Primer 建议</h2>
@@ -259,7 +259,7 @@ export default function AdviceCard({
               <button
                 type="button"
                 onClick={onUseScript}
-                className="mt-2 h-10 w-full rounded-[14px] bg-brand text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(49,95,75,0.48)] hover:bg-brand-hover"
+                className="primer-action mt-2 h-10 w-full rounded-[14px] bg-brand text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(49,95,75,0.48)] hover:bg-brand-hover"
               >
                 采用
               </button>
@@ -301,7 +301,7 @@ export default function AdviceCard({
                     <button
                       type="button"
                       onClick={onSendPending}
-                      className="mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
+                      className="primer-action mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
                     >
                       一键发送
                     </button>
@@ -326,7 +326,7 @@ export default function AdviceCard({
               <button
                 type="button"
                 onClick={onReport}
-                className="mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
+                className="primer-action mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
               >
                 一键报备
               </button>
@@ -358,7 +358,7 @@ export default function AdviceCard({
               <button
                 type="button"
                 onClick={onHandover}
-                className="mt-2 h-10 w-full rounded-[14px] bg-danger text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(172,68,61,0.5)] hover:opacity-90"
+                className="primer-action mt-2 h-10 w-full rounded-[14px] bg-danger text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(172,68,61,0.5)] hover:opacity-90"
               >
                 立即转交
               </button>

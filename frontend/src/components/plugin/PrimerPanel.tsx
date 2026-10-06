@@ -300,6 +300,7 @@ export default function PrimerPanel({
               照旧**：那一态吃的只是**行**，卡片本身还得有内容才值得出现。 */}
           {session.顾客情况?.length ? (
             <CustomerStateCard
+              key={`customer-${session.会话ID}`}
               rows={session.顾客情况}
               以前={session.以前}
               已结束={会话已结束(session)}
@@ -308,6 +309,7 @@ export default function PrimerPanel({
 
           {session.建议 ? (
             <AdviceCard
+              key={`advice-${session.会话ID}-${session.建议.形态}`}
               advice={session.建议}
               onUseScript={onUseScript}
               onReport={onReport}
@@ -378,7 +380,7 @@ export default function PrimerPanel({
                    那句话已经发出去了，读起来却像还压在手里等人点。
 
                「已自动发送」在 2026-10-05 之后是真的，就是现在这句。 */
-            <div className="rounded-[18px] border border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
+            <div className="primer-surface-in rounded-[18px] border border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
               {AI直发话术.length ? 'AI 直接发送' : '本轮无需客服动作'}
               <br />
               <span className="text-note">
