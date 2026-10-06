@@ -8,6 +8,7 @@ import { agent, shopMetrics } from '../data'
 import type { Session } from '../types'
 import type { 播放状态 } from '../hooks/use播放器'
 import { reviewEvidence, reviewMessage, reviewSessions } from './scenarios'
+import { simulateAction, reviewReceipt } from './actions'
 
 const noop = () => {}
 const snapshot: 播放状态 = {已播格数:0, 总格数:0, 在放:false, 格间隔:3000, 播放:noop, 暂停:noop,
@@ -18,7 +19,6 @@ export default function ReviewApp() {
   const [sessions, setSessions] = useState<Session[]>(() => structuredClone(reviewSessions))
   const [id, setId] = useState(sessions[0].会话ID)
   const [sent, setSent] = useState<Record<string, boolean>>({})
-  const [archived, setArchived] = useState<Record<string, boolean>>({})
   const active = sessions.find((s) => s.会话ID === id)!
   const patch = (fn: (s: Session) => Session) => setSessions((all) => all.map((s) => s.会话ID === id ? fn(s) : s))
   const send = (text: string) => {
@@ -26,17 +26,17 @@ export default function ReviewApp() {
     patch((s) => ({...s, 草稿:'', 消息:[...s.消息, reviewMessage(s,text.trim(),'客服',s.消息.length+1)]}))
     setSent((prev) => ({...prev,[id]:true}))
   }
-  const report = () => patch((s) => s.报备 ? s : ({...s, 报备:{等待分钟:0,工单号:'DEMO-REPORT-001'},
-    消息:[...s.消息,reviewMessage(s,s.本轮处置?.[0]?.话术 ?? '已记录您的诉求。','AI',s.消息.length+1)]}))
-  const transfer = () => patch((s) => s.转交 ? s : ({...s, 转交:{工单号:'DEMO-TRANSFER-001'}}))
+  const report = () => patch((s) => simulateAction(s, 'report'))
+  const transfer = () => patch((s) => simulateAction(s, 'transfer'))
   return <div className="flex h-full w-full overflow-hidden">
     <IconRail 会话数={sessions.length} />
     <SessionPanel sessions={sessions} activeId={id} onSelect={setId} 默认分组 />
     <ChatPanel key={id} session={active} agent={agent} metrics={shopMetrics} 播放={snapshot} 隐藏回放
+      验收处置已执行={Boolean(active.报备 || active.转交 || active.本轮处置?.some((d) => d.输出 === 'AI直发'))}
       onDraftChange={(text) => patch((s) => ({...s,草稿:text}))} onSend={send} 本轮已发={sent[id]} />
     <PrimerPanel session={active} 验收模式 六源依据={reviewEvidence[id]} 兜底={[]}
-      先例数量={56 + Object.keys(archived).length} 已模拟入库={Boolean(archived[id])}
-      onReviewArchive={active.本轮处置?.some((d) => d.输出 === 'AI直发') ? () => setArchived((prev) => ({...prev,[id]:true})) : undefined}
+      执行摘要={reviewReceipt(active)}
+      先例数量={56}
       onUseScript={() => patch((s) => ({...s,草稿:s.建议?.话术 ?? ''}))}
       onReport={report} onHandover={transfer} onSendPending={noop} 报备态="等审批"
       本轮已发={sent[id]} 已判定 未开演={false} />

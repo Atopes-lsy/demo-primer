@@ -24,6 +24,8 @@ type Props = {
   session: Session | null
   /** 隔离的 UI 验收页直接展示完整快照，不使用真实回放。 */
   隐藏回放?: boolean
+  /** 仅离线验收的成功动作记录；不用于改写真实会话判定。 */
+  验收处置已执行?: boolean
   agent: Agent
   metrics: ShopMetric[]
   onSend: (text: string) => void
@@ -115,6 +117,7 @@ function ChatHeader({ session, 回放 }: { session: Session; 回放?: 播放状�
 export default function ChatPanel({
   session,
   隐藏回放 = false,
+  验收处置已执行 = false,
   agent,
   metrics,
   onSend,
@@ -184,7 +187,7 @@ export default function ChatPanel({
                演示两条线不一样：剧本演到第 6 格，报备就是真演过了 ——
                所以「已报备」那句话对它们是对的，对真窗口是假话。
                判据就是这里这一条，`RoundPanel` 那边只负责照着念。 */
-            待确认={!剧本}
+            待确认={!剧本 && !(隐藏回放 && 验收处置已执行)}
             已发本轮={本轮已发}
           />
         </>

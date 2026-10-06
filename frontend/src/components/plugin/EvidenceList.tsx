@@ -36,8 +36,8 @@ export default function EvidenceList({ evidence, precedentCount, review = false 
         })}
       </div>}
       {precedentCount !== undefined && <p className="primer-precedent" aria-live="polite">
-        <span>{review ? '模拟先例库' : '先例库'}</span>
-        <PrecedentCount count={precedentCount} /><span>条</span>
+        <span title={review ? '本地演示计数，未写入后台' : undefined}>历史相似对话</span>
+        <PrecedentCount count={precedentCount} demo={review} /><span>条</span>
       </p>}
     </section>
   )

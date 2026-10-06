@@ -15,6 +15,8 @@ type Props = {
   advice: Advice
   /** 现有本轮处置提供的话术，仅预览，不在 UI 中推导或自动发送。 */
   处理话术?: string
+  /** 可选操作回执，必须由调用方的成功结果提供；UI 不猜交接数量。 */
+  执行摘要?: string
   /** 「采用」：只把话术带进输入框，**不发** —— 发不发由客服按发送决定。 */
   onUseScript: () => void
   /** 「一键报备」：后台走审批，对话还在客服手里。 */
@@ -131,6 +133,7 @@ function SentList({ 已代发 }: { 已代发: NonNullable<Advice['已代发']> }
 export default function AdviceCard({
   advice,
   处理话术,
+  执行摘要,
   onUseScript,
   onReport,
   onHandover,
@@ -187,7 +190,7 @@ export default function AdviceCard({
                     {待发句 && <p className="primer-script">{待发句.message_text}</p>}
                     <button type="button" onClick={onSendPending} className="primer-action primer-primary">一键发送</button>
                   </>}
-                  <p className="primer-action-note">报备单号 {报备.工单号} · {报备态 === '等审批' ? `等待 ${报备.等待分钟} 分钟，对话仍由你接待` : 报备态 === '等发送' ? 待发附注 : '回访由专员接续'}</p>
+                  <p className="primer-action-note" title={`报备单号 ${报备.工单号}`}>{执行摘要 ?? `报备单号 ${报备.工单号} · ${报备态 === '等审批' ? `等待 ${报备.等待分钟} 分钟，对话仍由你接待` : 报备态 === '等发送' ? 待发附注 : '回访由专员接续'}`}</p>
                 </div>
               ) : (
                 <button type="button" onClick={onReport} className="primer-action primer-primary">一键报备</button>
@@ -195,7 +198,7 @@ export default function AdviceCard({
               {risk ? 转交 ? (
                 <div className="primer-action-result" role="status">
                   <p className="primer-completion">已转交 · 由专席接续</p>
-                  <p className="primer-action-note">转交单号 {转交.工单号} · 你不必再跟进</p>
+                  <p className="primer-action-note" title={`转交单号 ${转交.工单号}`}>{执行摘要 ?? `转交单号 ${转交.工单号} · 你不必再跟进`}</p>
                 </div>
               ) : (
                 <button type="button" onClick={onHandover} className="primer-action primer-primary">立即转交</button>
