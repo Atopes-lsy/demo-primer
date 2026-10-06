@@ -167,8 +167,8 @@
 .primer-advice-body { min-height: 0; flex: 1; overflow-y: auto; scrollbar-width: thin; padding: 0 14px 12px; }
 .primer-advice-title { margin: 0 0 7px; font-size: var(--primer-body); line-height: 1.4; font-weight: 600; color: #343a37; }
 .primer-step-flow { position: relative; padding: 0; margin: 0; list-style: none; }
-.primer-step-flow::before { content: ''; position: absolute; left: 10px; width: 1px; top: 11px; bottom: 26px; background: color-mix(in srgb,var(--step-tone) 26%,#e3e5e3); transform-origin: top; animation: primer-flow-grow 1000ms var(--primer-ease) both; }
 .primer-step { position: relative; display: grid; grid-template-columns: 21px minmax(0,1fr); gap: 8px; padding-bottom: 7px; animation: primer-step-in 380ms var(--primer-ease) both; }
+.primer-step:not(:last-child)::before { content: ''; position: absolute; left: 10px; width: 1px; top: 11px; bottom: -11px; background: color-mix(in srgb,var(--step-tone) 26%,#e3e5e3); transform-origin: top; animation: primer-flow-grow 1000ms var(--primer-ease) both; }
 .primer-step:nth-child(2) { animation-delay: 320ms; }
 .primer-step:nth-child(3) { animation-delay: 640ms; padding-bottom: 0; }
 .primer-step-number { width: 21px; height: 21px; z-index: 1; display: grid; place-items: center; border-radius: 50%; background: var(--step-soft); color: var(--step-tone); box-shadow: 0 0 0 3px #fff; font-size: 11px; font-weight: 500; }
@@ -233,7 +233,7 @@
 .primer-source-count { animation: primer-count-settle 320ms ease-out 1430ms both; }
 .primer-structured[data-tone="risk"] { animation: primer-risk-surface 760ms ease-in-out 650ms both; }
 .primer-structured[data-tone="risk"] .primer-judgement { animation: primer-risk-upgrade 760ms ease-in-out 450ms both; }
-.primer-structured[data-tone="risk"] .primer-step-flow::before { animation: primer-flow-grow 1000ms var(--primer-ease) both, primer-risk-line 760ms ease-in-out 450ms both; }
+.primer-structured[data-tone="risk"] .primer-step:not(:last-child)::before { animation: primer-flow-grow 1000ms var(--primer-ease) both, primer-risk-line 760ms ease-in-out 450ms both; }
 @media (max-height: 820px) {
   .primer-panel { --primer-title: 14px; --primer-body: 12px; --primer-caption: 11.5px; }
   .primer-slots { grid-template-rows: 150px minmax(246px,1fr) 198px; }
