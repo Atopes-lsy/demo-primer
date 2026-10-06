@@ -2128,7 +2128,12 @@ export default function App() {
     <div className="flex h-full w-full overflow-hidden">
       {/* 角标上的会话数就是这张表 —— 演示两条 ＋ 112 个真实窗口（114），见 `IconRail.会话数`。 */}
       <IconRail 会话数={sessions.length} />
-      <SessionPanel sessions={沉底的展示} activeId={activeId} onSelect={选会话} />
+      <SessionPanel
+        sessions={沉底的展示}
+        activeId={activeId}
+        onSelect={选会话}
+        默认分组={UI验收模式}
+      />
       <ChatPanel
         session={active}
         agent={agent}

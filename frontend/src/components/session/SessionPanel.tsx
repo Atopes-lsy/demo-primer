@@ -19,14 +19,15 @@ type Props = {
   sessions: Session[]
   activeId: string
   onSelect: (会话ID: string) => void
+  默认分组?: boolean
 }
 
 /** 左侧会话列表区：搜索 · 筛选 · 按接待阶段分组。 */
-export default function SessionPanel({ sessions, activeId, onSelect }: Props) {
+export default function SessionPanel({ sessions, activeId, onSelect, 默认分组 = false }: Props) {
   const [tab, setTab] = useState('全部')
   const [keyword, setKeyword] = useState('')
   /**
-   * **默认不分组。** 接上真实会话之后（现在是 114 条窗口，2026-10-03 合并之前
+   * **真实数据模式默认不分组。** 接上真实会话之后（现在是 114 条窗口，2026-10-03 合并之前
    * 是 140 条会话），分组反而把顺序弄乱了：
    *
    *   - 真实窗口的 `stage` **全是 `正在接待`**（实测 112 个无一例外 —— 那一条是
@@ -44,9 +45,10 @@ export default function SessionPanel({ sessions, activeId, onSelect }: Props) {
    * 关掉之后数组顺序说了算：小鹿、阿沅，之后 112 个真实窗口按最近时间倒序，
    * 最后 30 条垫底（绝大多数是顾客把同一件事说了两遍的，见 `data/重复会话.ts`；
    * 那里面另有两条判据不是这一条，文件尾巴上各自写着为什么）。
-   * 开关留在屏幕上，要看分组随时能打开。
+   * 开关留在屏幕上，要看分组随时能打开。五客户 UI 验收模式会通过
+   * `默认分组` 单独打开分栏，不改变真实数据模式的默认行为。
    */
-  const [grouped, setGrouped] = useState(false)
+  const [grouped, setGrouped] = useState(默认分组)
 
   const filtered = useMemo(() => {
     const kw = keyword.trim()
