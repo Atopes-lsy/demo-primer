@@ -1,11 +1,12 @@
 import { Puzzle, RotateCw, Settings2 } from 'lucide-react'
 
 import { 建交接包, type 交接包 } from '../../data/交接包'
-import { 会话已结束, type ChatMessage, type Session } from '../../types'
+import { 会话已结束, type ChatMessage, type Session, type Evidence } from '../../types'
 import AdviceCard, { type 报备态 } from './AdviceCard'
 import { AI名义 } from '../../data/判定'
 import CustomerStateCard from './CustomerStateCard'
 import HandoverPacket from './HandoverPacket'
+import EvidenceList from './EvidenceList'
 
 /**
  * 交接包整块**暂时不上屏**（2026-10-04 拍：这块暂时不做）。
@@ -41,6 +42,8 @@ export type 兜底来源 = '判定' | '需求分解' | '会话列表' | '动作'
 
 type Props = {
   session: Session | null
+  六源依据?: Evidence[]
+  验收模式?: boolean
   onUseScript: () => void
   onReport: () => void
   onHandover: () => void
@@ -201,6 +204,8 @@ type Props = {
  */
 export default function PrimerPanel({
   session,
+  六源依据,
+  验收模式 = false,
   onUseScript,
   onReport,
   onHandover,
@@ -269,7 +274,7 @@ export default function PrimerPanel({
         }`}
       >
         <span className={`size-1.5 shrink-0 rounded-full ${全连 ? 'bg-success' : 'bg-hold'}`} />
-        {全连 ? '接口 · 已连' : `剧本兜底 · ${兜底.join('、')}`}
+        {验收模式 ? '本地验收 · 未连接后台' : 全连 ? '接口 · 已连' : `剧本兜底 · ${兜底.join('、')}`}
       </p>
 
       {/* 后端拒绝**不出来是安静的**：下一步什么都不会发生，而屏幕上看着就像
@@ -393,6 +398,8 @@ export default function PrimerPanel({
               ) : null}
             </div>
           )}
+
+          <EvidenceList key={`evidence-${session.会话ID}`} evidence={六源依据 ?? session.建议?.依据} />
 
           {/* 暂时不画 —— 见 `显示交接包`。上面那个 `交接包` 照旧算着，翻回
               `true` 就上屏，中间不用补任何东西。 */}

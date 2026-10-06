@@ -1,13 +1,4 @@
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
-
-import {
-  EVIDENCE_SOURCE,
-  type Advice,
-  type ChatMessage,
-  type Evidence,
-  type EvidenceSource,
-} from '../../types'
+import type { Advice, ChatMessage } from '../../types'
 
 /**
  * 报备卡上的三个状态。
@@ -77,76 +68,6 @@ const 描边: Record<Advice['形态'], string> = {
   需要话术: 'border-line',
   需要授权: 'border-hold-line',
   有风险: 'border-risk-line',
-}
-
-/**
- * 依据清单，主卡底部可展开的那块。
- *
- * 名字是英文的：React 只把首字母大写的函数当组件，中文开头的它认成普通函数，
- * 里面的 `useState` 会被 rules-of-hooks 拦下 —— 不是风格问题，是工具看不见它。
- */
-function EvidenceList({ advice }: { advice: Advice }) {
-  const [open, setOpen] = useState(true)
-
-  const 六源 = Object.keys(EVIDENCE_SOURCE) as EvidenceSource[]
-
-  // 按来源分组。**同一个来源可以有多条引用** —— 演示数据里口径表就同时命中了
-  // K06（不良反应处理）和 K20（投诉与升级），两条都得显示。
-  const 按源 = new Map<EvidenceSource, Evidence[]>()
-  for (const e of advice.依据) {
-    const 组 = 按源.get(e.序号)
-    if (组) 组.push(e)
-    else 按源.set(e.序号, [e])
-  }
-
-  // 计数按「源」，展示按「条」—— 这两个粒度不同，混用会出两种错：
-  //   · 按条计数：口径表返两条就报成 2，`命中 + 未命中` 会超过 6
-  //   · 按源去重后只渲染一条：K20 那条引用被静默吃掉
-  // 所以下面两个清单都从六源这个**封闭集合**切出来（保证命中＋未命中恒等于 6，
-  // 且上游漏返回一源时仍能补空位列出来），而渲染时把该源的所有条目都铺开。
-  const 命中源 = 六源.filter((序号) => 按源.get(序号)?.some((e) => e.用上))
-
-  return (
-    <section className="primer-evidence primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-xs font-medium text-ink-2 hover:bg-canvas/70"
-      >
-        <span className="text-base font-semibold text-ink">
-          依据 <span className="ml-1 text-body font-medium text-ink-3">{命中源.length}/6 份资料查到</span>
-        </span>
-        {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-      </button>
-
-      {open ? (
-        <div className="border-t border-line-soft px-3 pb-2.5">
-          {六源.map((序号) => {
-            const 命中 = 命中源.includes(序号)
-            const 说明 = (按源.get(序号) ?? [])
-              .filter((e) => e.用上)
-              .map((e) => `${e.出处}：${e.摘要}`)
-              .join('；')
-            return (
-              <div
-                key={序号}
-                title={说明 || `${EVIDENCE_SOURCE[序号]}：无记录`}
-                className="primer-evidence-row flex min-h-8 items-center gap-2 border-b border-line-soft last:border-b-0"
-              >
-                <span className={`size-2 shrink-0 rounded-full ${命中 ? 'bg-hold' : 'bg-line'}`} />
-                <span className={`min-w-0 flex-1 truncate text-xs ${命中 ? 'font-medium text-ink-2' : 'text-ink-4'}`}>
-                  {EVIDENCE_SOURCE[序号]}
-                </span>
-                <span className={`shrink-0 text-body ${命中 ? 'font-medium text-hold-ink' : 'text-ink-4'}`}>
-                  {命中 ? '命中' : '无记录'}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      ) : null}
-    </section>
-  )
 }
 
 /**
@@ -374,7 +295,6 @@ export default function AdviceCard({
 
       </section>
 
-      <EvidenceList advice={advice} />
     </>
   )
 }

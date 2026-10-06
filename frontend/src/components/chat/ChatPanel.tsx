@@ -21,6 +21,8 @@ import 播放器 from './播放器'
 
 type Props = {
   session: Session | null
+  /** 隔离的 UI 验收页直接展示完整快照，不使用真实回放。 */
+  隐藏回放?: boolean
   agent: Agent
   metrics: ShopMetric[]
   onSend: (text: string) => void
@@ -111,6 +113,7 @@ function ChatHeader({ session, 回放 }: { session: Session; 回放?: 播放状�
 /** 中部核心区：指标条 · 买家信息 · 商品卡 · 消息流 · 输入框。 */
 export default function ChatPanel({
   session,
+  隐藏回放 = false,
   agent,
   metrics,
   onSend,
@@ -141,7 +144,7 @@ export default function ChatPanel({
 
       {session ? (
         <>
-          <ChatHeader session={session} 回放={剧本 ? undefined : 播放} />
+          <ChatHeader session={session} 回放={剧本 || 隐藏回放 ? undefined : 播放} />
           {/* 回放条**只给演示两条线**（2026-10-05）。真窗口那条路走标题栏上那颗
               按钮 —— 两种会话的格子单位不一样（步 / 条），挤在同一排刻度上迟早
               要换算，而换算过一次就错了（见 `播放器` 文件头）。
