@@ -18,6 +18,7 @@ import MessageList from './MessageList'
 import MetricBar from './MetricBar'
 import ProductCard from './ProductCard'
 import 播放器 from './播放器'
+import { sendPolicy } from './sendPolicy'
 
 type Props = {
   session: Session | null
@@ -132,11 +133,13 @@ export default function ChatPanel({
   const guard = 查禁语(draft)
   const 冲突 = 查事实(draft, session)
 
-  const send = (text: string = draft) => {
+  const send = (text: string = draft, confirmed = false) => {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (sendPolicy(trimmed, session, confirmed).kind !== 'ready') return
     onSend(trimmed)
   }
+  const transferLock = session?.转交 || session?.建议?.形态 === '有风险'
+    ? (session?.转交 ? '已转交专席，普通发送已锁定' : '需要转交专席，请在右侧立即转交') : undefined
 
   return (
     <section className="flex min-w-0 flex-1 flex-col bg-canvas">
@@ -164,9 +167,7 @@ export default function ChatPanel({
                   : `这条会话有 ${播放.总格数} 条消息，点右上角 ▶ 从第 1 条开始演`
             }
           />
-          {/* 「仍然发送」和「发送」眼下是同一个调用 —— 区别在意图：这一下是客服看过
-              警示之后拍的板。留痕（记下谁在什么时候越过了哪条口径）留给后端做。
-              两条检查共用这一个出口：越过哪一条都是同一个动作。 */}
+          {/* 轻提醒需显式确认；事实冲突与转交锁定不能通过确认绕过。 */}
           <Composer
             value={draft}
             onChange={onDraftChange}
@@ -176,7 +177,8 @@ export default function ChatPanel({
             冲突={冲突}
             // 整句换掉，不是换词 —— 这句话本身是假的（见 `ConflictBar`）。
             onFixConflict={() => 冲突 && onDraftChange(冲突.建议)}
-            onSendAnyway={() => send()}
+            onSendAnyway={() => send(draft, true)}
+            发送锁定={transferLock}
             round={session.本轮处置 ?? []}
             /* **没有剧本的会话，这一屏一件事都还没发生过。**
                演示两条线不一样：剧本演到第 6 格，报备就是真演过了 ——

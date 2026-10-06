@@ -50,7 +50,7 @@ export default function GuardBar({ hit, onReplace, onSendAnyway }: Props) {
           onClick={onSendAnyway}
           className="primer-action h-9 rounded-[12px] border border-line bg-panel/80 px-3 text-xs font-medium text-ink-2 hover:bg-canvas"
         >
-          仍然发送
+          确认后发送
         </button>
       </div>
     </div>

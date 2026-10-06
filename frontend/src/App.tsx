@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import ChatPanel from './components/chat/ChatPanel'
+import { sendPolicy } from './components/chat/sendPolicy'
 import IconRail from './components/IconRail'
 import type { 报备态 } from './components/plugin/AdviceCard'
 import PrimerPanel, { type 兜底来源 } from './components/plugin/PrimerPanel'
@@ -1868,7 +1869,7 @@ export default function App() {
    */
   const handleSend = (text: string) => {
     const 内容 = text.trim()
-    if (!内容) return
+    if (sendPolicy(内容, active, true).kind !== 'ready') return
 
     if (剧本 && active) {
       // 序号**不能拿屏幕上已有的条数 +1**：剧本的号是 `造消息` 写死的，和演到

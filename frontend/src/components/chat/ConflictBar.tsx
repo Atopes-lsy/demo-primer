@@ -12,8 +12,8 @@ type Props = {
    * 换掉一个动词救不回来 —— 剩半句真话半句假话比原样发出去还糟。
    */
   onReplace: () => void
-  /** 「仍然发送」：客服拍板，照原样发。 */
-  onSendAnyway: () => void
+  /** 返回输入框修改，事实冲突没有强行发送入口。 */
+  onEdit: () => void
 }
 
 /**
@@ -25,16 +25,15 @@ type Props = {
  *   · 检查二说的是「这句是假的」，红框、语气是止住 —— 这条发出去，
  *     顾客手上就多了一句我们兑现不了的承诺。
  *
- * 两条都留着［仍然发送］：判断权在客服，系统只负责把对不上的地方摆到他眼前
- * （见 `GuardBar` 的注释）。但红框里那句「系统查到」必须写清楚**查的是哪一单、
+ * 事实冲突必须修改；只有措辞提醒允许确认发送。「系统查到」必须写清楚**查的是哪一单、
  * 什么状态** —— 只喊「你错了」而不给出处，客服只能靠猜。
  */
-export default function ConflictBar({ 冲突, onReplace, onSendAnyway }: Props) {
+export default function ConflictBar({ 冲突, onReplace, onEdit }: Props) {
   return (
-    <div className="primer-confirm primer-confirm-fact primer-float-in mx-3 mb-2 rounded-[18px] border border-white/90 bg-gradient-to-r from-risk-soft to-panel/95 px-3 py-2.5 shadow-[0_8px_24px_-10px_rgba(172,68,61,0.3)] backdrop-blur-xl">
+    <div role="alert" className="primer-confirm primer-confirm-fact primer-float-in mx-3 mb-2 rounded-[18px] border border-white/90 bg-gradient-to-r from-risk-soft to-panel/95 px-3 py-2.5 shadow-[0_8px_24px_-10px_rgba(172,68,61,0.3)] backdrop-blur-xl">
       <p className="flex items-start gap-1.5 text-xs font-semibold text-risk-ink">
         <OctagonAlert size={12} className="mt-0.5 shrink-0" />
-        <span>这句话和系统记录对不上</span>
+        <span>事实不一致，发送已暂停</span>
       </p>
 
       <div className="mt-1 space-y-0.5 pl-4.5 text-xs leading-relaxed">
@@ -57,10 +56,10 @@ export default function ConflictBar({ 冲突, onReplace, onSendAnyway }: Props) 
         </button>
         <button
           type="button"
-          onClick={onSendAnyway}
+          onClick={onEdit}
           className="primer-action h-9 rounded-[12px] border border-line bg-panel/80 px-3 text-xs font-medium text-ink-2 hover:bg-canvas"
         >
-          仍然发送
+          继续编辑
         </button>
       </div>
     </div>
