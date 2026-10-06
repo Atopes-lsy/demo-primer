@@ -89,8 +89,8 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
   return (
     <section className="rounded-md border border-line bg-panel">
       <header className="flex items-center justify-between px-3 py-2">
-        <h2 className="text-xs font-medium text-ink">顾客情况</h2>
-        <span className="text-note text-ink-4">每条消息都重读</span>
+        <h2 className="text-base font-semibold text-ink">顾客情况</h2>
+        <span className="text-body text-ink-3">每条消息都重读</span>
       </header>
 
       {只有空历史 ? (
@@ -104,7 +104,7 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
           <div className="border-t border-line-soft">
             {可见.map((row) => (
               <div key={row.标签} className="border-b border-line-soft px-3 py-2 last:border-b-0">
-                <p className="text-note tracking-wide text-ink-4">{row.标签}</p>
+                <p className="text-body font-medium text-ink-3">{row.标签}</p>
                 {/* **值只占一行**（2026-10-04）。原来它是随便折行的，而「这次要什么」
                     在这一改里换成了模型拆出来的短需求（` ＋ ` 连起来），那条规矩的
                     一半就是「控制在一行以内」—— 一行宽是这一栏的排版前提，
@@ -116,7 +116,10 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
 
                     ⚠️ 这一条对**所有行**生效，不只是「这次要什么」：按标签开特例的话，
                     将来多一行长值就会折行，而折叠条是按行数算的。 */}
-                <p className="mt-0.5 truncate text-xs leading-relaxed text-ink" title={row.值}>
+                <p
+                  className="mt-0.5 truncate text-xs font-medium leading-relaxed text-ink"
+                  title={row.值}
+                >
                   {row.值}
                 </p>
                 {row.备注 ? (

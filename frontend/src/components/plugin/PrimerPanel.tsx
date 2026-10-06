@@ -248,7 +248,7 @@ export default function PrimerPanel({
   return (
     <aside className="flex w-[360px] shrink-0 flex-col border-l border-line bg-canvas">
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-line bg-panel pl-3">
-        <div className="flex h-full items-center gap-1.5 rounded-t bg-brand px-3 text-xs font-medium text-white">
+        <div className="flex h-full items-center gap-2 rounded-t bg-brand px-3 text-base font-semibold text-white">
           <Puzzle size={13} />
           智能客服
         </div>
@@ -264,7 +264,7 @@ export default function PrimerPanel({
 
       {/* 数据源标记。**常驻，而且不挂在 `import.meta.env.DEV` 后面** —— 见 `兜底`。 */}
       <p
-        className={`flex shrink-0 items-center gap-1.5 border-b border-line px-3 py-1 text-note ${
+        className={`flex shrink-0 items-center justify-end gap-1.5 border-b border-line px-3 py-1.5 text-body font-medium ${
           全连 ? 'bg-panel text-ink-4' : 'bg-hold-soft text-hold-ink'
         }`}
       >
