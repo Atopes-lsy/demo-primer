@@ -86,7 +86,7 @@ const 描边: Record<Advice['形态'], string> = {
  * 里面的 `useState` 会被 rules-of-hooks 拦下 —— 不是风格问题，是工具看不见它。
  */
 function EvidenceList({ advice }: { advice: Advice }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
 
   const 六源 = Object.keys(EVIDENCE_SOURCE) as EvidenceSource[]
 
@@ -105,54 +105,47 @@ function EvidenceList({ advice }: { advice: Advice }) {
   // 所以下面两个清单都从六源这个**封闭集合**切出来（保证命中＋未命中恒等于 6，
   // 且上游漏返回一源时仍能补空位列出来），而渲染时把该源的所有条目都铺开。
   const 命中源 = 六源.filter((序号) => 按源.get(序号)?.some((e) => e.用上))
-  const 未命中源 = 六源.filter((序号) => !按源.get(序号)?.some((e) => e.用上))
 
   return (
-    <div className="border-t border-line-soft">
+    <section className="overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-xs font-medium text-ink-2 hover:bg-canvas/70"
       >
-        <span>依据 · {命中源.length}/{六源.length} 源命中</span>
+        <span className="text-base font-semibold text-ink">
+          依据 <span className="ml-1 text-body font-medium text-ink-3">{命中源.length}/6 份资料查到</span>
+        </span>
         {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
       </button>
 
       {open ? (
-        <div className="px-3 pb-2.5">
-          {/* 第一段：命中来源逐条列出。顺序是六源编号顺序，不是数据顺序；
-              同一来源的多条引用都铺开，不合并 */}
-          {命中源.flatMap((序号) =>
-            (按源.get(序号) ?? [])
+        <div className="border-t border-line-soft px-3 pb-2.5">
+          {六源.map((序号) => {
+            const 命中 = 命中源.includes(序号)
+            const 说明 = (按源.get(序号) ?? [])
               .filter((e) => e.用上)
-              .map((e, i) => (
-                <div key={`${序号}-${i}`} className="mb-1.5">
-                  <p className="text-xs font-medium text-ink">
-                    <span className="mr-1 text-ink-3">{序号}</span>
-                    {e.出处}
-                  </p>
-                  <p className="pl-4 text-body leading-relaxed text-ink-3">{e.摘要}</p>
-                </div>
-              )),
-          )}
-
-          {/* 第二段：分隔语。三段顺序固定，规格 §1.4 */}
-          <p className="mt-2 text-note leading-relaxed text-ink-4">
-            另 {未命中源.length} 源无记录 · 一并列出以示无遗漏
-          </p>
-
-          {/* 第三段：未命中的六源清单 */}
-          <p className="mt-1 text-note leading-relaxed text-ink-4">
-            {未命中源
-              .map((序号) => {
-                const 说明 = (按源.get(序号) ?? []).map((e) => e.摘要).join('；')
-                return `${序号} ${EVIDENCE_SOURCE[序号]}${说明 ? ` · ${说明}` : ''}`
-              })
-              .join('　')}
-          </p>
+              .map((e) => `${e.出处}：${e.摘要}`)
+              .join('；')
+            return (
+              <div
+                key={序号}
+                title={说明 || `${EVIDENCE_SOURCE[序号]}：无记录`}
+                className="flex min-h-8 items-center gap-2 border-b border-line-soft last:border-b-0"
+              >
+                <span className={`size-2 shrink-0 rounded-full ${命中 ? 'bg-hold' : 'bg-line'}`} />
+                <span className={`min-w-0 flex-1 truncate text-xs ${命中 ? 'font-medium text-ink-2' : 'text-ink-4'}`}>
+                  {EVIDENCE_SOURCE[序号]}
+                </span>
+                <span className={`shrink-0 text-body ${命中 ? 'font-medium text-hold-ink' : 'text-ink-4'}`}>
+                  {命中 ? '命中' : '无记录'}
+                </span>
+              </div>
+            )
+          })}
         </div>
       ) : null}
-    </div>
+    </section>
   )
 }
 
@@ -231,9 +224,10 @@ export default function AdviceCard({
   已发本轮,
 }: Props) {
   return (
-    <section
-      className={`overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
-    >
+    <>
+      <section
+        className={`overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
+      >
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-base font-semibold text-ink">Primer 建议</h2>
       </header>
@@ -378,7 +372,9 @@ export default function AdviceCard({
           「AI 替你说了句话」这件事跟这一轮判成哪种输出没关系。 */}
       {advice.已代发?.length ? <SentList 已代发={advice.已代发} /> : null}
 
+      </section>
+
       <EvidenceList advice={advice} />
-    </section>
+    </>
   )
 }
