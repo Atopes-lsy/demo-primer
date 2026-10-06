@@ -25,7 +25,7 @@ type Props = {
  */
 export default function GuardBar({ hit, onReplace, onSendAnyway }: Props) {
   return (
-    <div className="border-t border-hold-line bg-hold-soft px-3 py-2">
+    <div className="mx-3 mb-2 rounded-[18px] border border-white/90 bg-gradient-to-r from-hold-soft to-panel/95 px-3 py-2.5 shadow-[0_8px_24px_-10px_rgba(166,82,32,0.28)] backdrop-blur-xl">
       <p className="flex items-start gap-1.5 text-xs font-semibold text-hold-ink">
         <CornerDownLeft size={12} className="mt-0.5 shrink-0" />
         <span>
@@ -41,14 +41,14 @@ export default function GuardBar({ hit, onReplace, onSendAnyway }: Props) {
         <button
           type="button"
           onClick={onReplace}
-          className="rounded border border-hold-line bg-panel px-2.5 py-1 text-xs font-medium text-hold-ink hover:bg-hold-soft"
+          className="h-9 rounded-[12px] border border-hold-line bg-panel/80 px-3 text-xs font-medium text-hold-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] hover:bg-hold-soft"
         >
           一键替换
         </button>
         <button
           type="button"
           onClick={onSendAnyway}
-          className="rounded border border-line bg-panel px-2.5 py-1 text-xs font-medium text-ink-2 hover:bg-canvas"
+          className="h-9 rounded-[12px] border border-line bg-panel/80 px-3 text-xs font-medium text-ink-2 hover:bg-canvas"
         >
           仍然发送
         </button>

@@ -112,10 +112,10 @@ function EvidenceList({ advice }: { advice: Advice }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1 px-3 py-2 text-xs font-medium text-ink-2 hover:bg-canvas"
+        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-xs font-medium text-ink-2 hover:bg-canvas/70"
       >
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        依据 · {命中源.length}/{六源.length} 源命中
+        <span>依据 · {命中源.length}/{六源.length} 源命中</span>
+        {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
       </button>
 
       {open ? (
@@ -231,13 +231,15 @@ export default function AdviceCard({
   已发本轮,
 }: Props) {
   return (
-    <section className={`rounded-md border bg-panel ${描边[advice.形态]}`}>
+    <section
+      className={`overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
+    >
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-base font-semibold text-ink">Primer 建议</h2>
       </header>
 
       <div className="px-3 pb-3">
-        <p className="ml-auto block w-fit rounded-full bg-canvas px-2.5 py-1 text-body font-medium text-ink-2">
+        <p className="ml-auto block w-fit rounded-full bg-canvas/80 px-3 py-1.5 text-body font-medium text-ink-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-white/80">
           AI 判断：{advice.判断}
         </p>
 
@@ -251,7 +253,7 @@ export default function AdviceCard({
               </p>
             ))}
             {advice.话术 ? (
-              <p className="mt-2 rounded border border-line-soft bg-canvas px-2 py-2 text-xs leading-relaxed text-ink">
+              <p className="mt-2 rounded-[12px] border border-white/80 bg-canvas/80 px-3 py-2.5 text-xs leading-relaxed text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 {advice.话术}
               </p>
             ) : null}
@@ -263,7 +265,7 @@ export default function AdviceCard({
               <button
                 type="button"
                 onClick={onUseScript}
-                className="mt-2 w-full rounded bg-brand py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
+                className="mt-2 h-10 w-full rounded-[14px] bg-brand text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(49,95,75,0.48)] hover:bg-brand-hover"
               >
                 采用
               </button>
@@ -305,7 +307,7 @@ export default function AdviceCard({
                     <button
                       type="button"
                       onClick={onSendPending}
-                      className="mt-2 w-full rounded bg-hold py-1.5 text-xs font-medium text-white hover:opacity-90"
+                      className="mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
                     >
                       一键发送
                     </button>
@@ -330,7 +332,7 @@ export default function AdviceCard({
               <button
                 type="button"
                 onClick={onReport}
-                className="mt-2 w-full rounded bg-hold py-1.5 text-xs font-medium text-white hover:opacity-90"
+                className="mt-2 h-10 w-full rounded-[14px] bg-hold text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(166,82,32,0.48)] hover:opacity-90"
               >
                 一键报备
               </button>
@@ -362,7 +364,7 @@ export default function AdviceCard({
               <button
                 type="button"
                 onClick={onHandover}
-                className="mt-2 w-full rounded bg-danger py-1.5 text-xs font-medium text-white hover:opacity-90"
+                className="mt-2 h-10 w-full rounded-[14px] bg-danger text-xs font-medium text-white shadow-[0_5px_14px_-6px_rgba(172,68,61,0.5)] hover:opacity-90"
               >
                 立即转交
               </button>

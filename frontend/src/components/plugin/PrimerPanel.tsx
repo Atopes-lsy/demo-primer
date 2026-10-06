@@ -246,9 +246,9 @@ export default function PrimerPanel({
       .map((d) => d.话术 as string) ?? []
 
   return (
-    <aside className="flex w-[360px] shrink-0 flex-col border-l border-line bg-canvas">
-      <div className="flex h-9 shrink-0 items-center justify-between border-b border-line bg-panel pl-3">
-        <div className="flex h-full items-center gap-2 rounded-t bg-brand px-3 text-base font-semibold text-white">
+    <aside className="flex w-[360px] shrink-0 flex-col border-l border-line bg-gradient-to-b from-panel to-canvas">
+      <div className="flex h-10 shrink-0 items-center justify-between border-b border-line/80 bg-panel/90 pl-3 backdrop-blur-xl">
+        <div className="flex h-8 items-center gap-2 rounded-[12px] bg-brand px-3 text-base font-semibold text-white shadow-[0_4px_12px_-5px_rgba(49,95,75,0.45)]">
           <Puzzle size={13} />
           智能客服
         </div>
@@ -289,7 +289,7 @@ export default function PrimerPanel({
           </div>
         </div>
       ) : (
-        <div className="scrollbar-thin flex-1 space-y-2 overflow-y-auto p-2">
+        <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto p-3">
           {/* 判据是**有行**，不是「有值」。`[]` 在 JS 里是真值 —— 写成
               `session.顾客情况 ? …` 的话，空数组会渲染出一张**没有行的顾客情况卡**
               （只剩标题「顾客情况 / 每条消息都重读」）。演示两条会话的基底
@@ -335,7 +335,7 @@ export default function PrimerPanel({
                两种会话两种说法，因为「没开始」指的不是一回事：演示线是「第一步
                还没走」，真窗口是「还没走到任何一轮」（顾客还没开口，或者头几条
                是客服开场白／系统推送）。见 `未开演` 的文档串。 */
-            <p className="rounded-md border border-dashed border-line bg-panel px-3 py-4 text-center text-body text-ink-4">
+            <p className="rounded-[18px] border border-dashed border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
               {未判定 ? '还没演到要判的地方' : '还没开始演'}
               <br />
               <span className="text-note">
@@ -354,7 +354,7 @@ export default function PrimerPanel({
 
                **判定答上来了但本轮无主卡**（`已判定` 真）不走这儿：那是一条
                合法答案，落到底下那句「本轮无需客服动作」去 —— 见 `已判定`。 */
-            <p className="rounded-md border border-dashed border-line bg-panel px-3 py-4 text-center text-body text-ink-4">
+            <p className="rounded-[18px] border border-dashed border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
               {判定中 ? '正在判这条会话…' : '这条会话的判定没答上来'}
               <br />
               <span className="text-note">
@@ -378,7 +378,7 @@ export default function PrimerPanel({
                    那句话已经发出去了，读起来却像还压在手里等人点。
 
                「已自动发送」在 2026-10-05 之后是真的，就是现在这句。 */
-            <div className="rounded-md border border-line bg-panel px-3 py-4 text-center text-body text-ink-4">
+            <div className="rounded-[18px] border border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
               {AI直发话术.length ? 'AI 直接发送' : '本轮无需客服动作'}
               <br />
               <span className="text-note">
