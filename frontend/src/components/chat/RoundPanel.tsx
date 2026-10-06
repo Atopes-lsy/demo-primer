@@ -97,7 +97,7 @@ export default function RoundPanel({ items, 待确认, 已发本轮 }: Props) {
     已发本轮 && d.输出 === '客服点发送' ? '已发送' : 表[d.输出]
 
   return (
-    <div className="border-t border-line-soft bg-canvas px-3 py-2">
+    <div className="primer-round-summary border-t border-line-soft bg-canvas px-3 py-2">
       <p className="text-note font-medium text-ink-2">
         本轮处置
         <span className="ml-1 font-normal text-ink-4">

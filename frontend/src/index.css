@@ -129,7 +129,7 @@
 
 .primer-slots {
   display: grid;
-  grid-template-rows: 196px minmax(320px, 1fr) 250px;
+  grid-template-rows: 160px minmax(360px, 1fr) 238px;
   gap: 12px;
   min-height: 0;
   align-content: stretch;
@@ -168,7 +168,9 @@
 .primer-fact > p:nth-child(2) { font-size: 13px; font-weight: 500; }
 .primer-fact .text-danger { width: fit-content; margin-left: auto; padding: 2px 8px; border-radius: 8px; color: #a1322b; background: #fcf0ee; text-align: center; }
 .primer-customer > button { min-height: 28px; border-top: 0; padding: 4px 12px; }
-.primer-advice { display: flex; flex-direction: column; min-height: 0; }
+.primer-advice { position: relative; display: flex; flex-direction: column; min-height: 0; }
+.primer-advice:has(.primer-advice-body > div > .primer-action) { padding-bottom: 66px; }
+.primer-advice-body > div > button.primer-action { position: absolute; bottom: 14px; left: 14px; width: calc(100% - 28px); margin: 0; z-index: 2; }
 .primer-advice-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 0 14px 12px; }
 .primer-judgement { max-width: 100%; padding: 5px 10px; text-align: center; font-weight: 500; }
 .primer-advice-body > div > p:first-child { font-size: 14px; line-height: 1.5; font-weight: 600; }
@@ -178,7 +180,7 @@
 .primer-advice-body .bg-hold { background: #965c16; }
 .primer-advice-body .bg-danger { background: #ae3d36; }
 .primer-advice-body .bg-risk-soft { border-color: transparent; border-radius: 12px; }
-.primer-advice > .border-t { flex: 0 1 auto; max-height: 108px; overflow-y: auto; scrollbar-width: thin; }
+.primer-advice > .border-t { flex: 0 0 auto; max-height: 72px; overflow-y: auto; scrollbar-width: thin; }
 .primer-evidence > button { min-height: 44px; padding: 10px 14px; }
 .primer-evidence > div { border: 0; padding: 0 14px 10px; }
 .primer-evidence-row { height: 31px; min-height: 31px; gap: 8px; }
@@ -186,6 +188,42 @@
 .primer-evidence-row .bg-hold { background: #bf9a28; }
 .primer-evidence-row .text-hold-ink { color: #806717; }
 .primer-evidence-row .text-ink-4 { color: #878d8a; }
+
+/* 发送前提示脱离文档流：两种强度共用下沿，不推挤千牛输入框。 */
+.primer-composer-host { position: relative; flex-basis: 190px; height: 190px; min-height: 190px; }
+.primer-composer-host > textarea { height: 76px; }
+.primer-composer-host > div:not(.primer-confirm):not(.primer-round-summary) { height: 38px; }
+.primer-round-summary { height: 76px; overflow-y: auto; scrollbar-width: thin; }
+.primer-message-stream:has(+ .primer-composer-host .primer-confirm) { padding-bottom: 248px; }
+.primer-confirm {
+  position: absolute;
+  right: 12px;
+  bottom: calc(100% + 8px);
+  z-index: 10;
+  width: min(360px, calc(100% - 24px));
+  max-height: 232px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,.95);
+  border-radius: 18px;
+  background: linear-gradient(130deg,rgba(255,255,255,.97),rgba(255,249,237,.94));
+  box-shadow: 0 14px 32px -12px rgba(43,39,29,.2), 0 2px 7px rgba(43,39,29,.04);
+  backdrop-filter: blur(18px) saturate(1.08);
+  transform-origin: right bottom;
+}
+.primer-confirm .text-xs { font-size: 13px; line-height: 1.5; }
+.primer-confirm > p:first-child { font-weight: 600; color: #865f20; }
+.primer-confirm > div:last-child { justify-content: flex-end; padding-left: 0; gap: 8px; }
+.primer-confirm .primer-action { min-height: 34px; height: auto; padding: 6px 12px; border-radius: 10px; font-size: 12px; }
+.primer-confirm-soft .primer-action:first-child { color: #775014; background: #f4e9d2; border-color: transparent; }
+.primer-confirm-fact { background: linear-gradient(130deg,rgba(255,253,252,.98),rgba(250,229,225,.97)); box-shadow: 0 14px 32px -12px rgba(112,44,38,.23), 0 2px 7px rgba(43,39,29,.04); }
+.primer-confirm-fact > p:first-child { color: #942f28; }
+.primer-confirm-fact .primer-action:first-child { color: white; background: #a13a31; border-color: transparent; }
+.primer-composer-host:has(.primer-confirm-soft):has(.primer-confirm-fact) > .primer-confirm { width: calc(50% - 18px); }
+.primer-composer-host:has(.primer-confirm-fact) > .primer-confirm-soft { left: 12px; right: auto; }
+.primer-confirm button:focus-visible { outline: 2px solid #806717; outline-offset: 3px; }
 
 /* Primer 自有区域的入场与按压反馈；千牛原生区域不引用这些类。 */
 @keyframes primer-surface-in {

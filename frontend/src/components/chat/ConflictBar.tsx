@@ -31,7 +31,7 @@ type Props = {
  */
 export default function ConflictBar({ 冲突, onReplace, onSendAnyway }: Props) {
   return (
-    <div className="primer-float-in mx-3 mb-2 rounded-[18px] border border-white/90 bg-gradient-to-r from-risk-soft to-panel/95 px-3 py-2.5 shadow-[0_8px_24px_-10px_rgba(172,68,61,0.3)] backdrop-blur-xl">
+    <div className="primer-confirm primer-confirm-fact primer-float-in mx-3 mb-2 rounded-[18px] border border-white/90 bg-gradient-to-r from-risk-soft to-panel/95 px-3 py-2.5 shadow-[0_8px_24px_-10px_rgba(172,68,61,0.3)] backdrop-blur-xl">
       <p className="flex items-start gap-1.5 text-xs font-semibold text-risk-ink">
         <OctagonAlert size={12} className="mt-0.5 shrink-0" />
         <span>这句话和系统记录对不上</span>
