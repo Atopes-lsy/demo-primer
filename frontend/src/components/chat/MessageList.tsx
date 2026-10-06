@@ -93,7 +93,7 @@ export default function MessageList({ messages, 空态文案 }: Props) {
   }
 
   return (
-    <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto px-3 py-3">
+    <div className="primer-message-stream scrollbar-thin flex-1 space-y-3 overflow-y-auto px-3 py-3">
       {messages.map((m) => (
         <Message key={m.message_id} message={m} />
       ))}

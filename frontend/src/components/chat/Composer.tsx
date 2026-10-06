@@ -53,7 +53,7 @@ export default function Composer({
   已发本轮,
 }: Props) {
   return (
-    <div className="shrink-0 border-t border-line bg-panel">
+    <div className="primer-composer-host shrink-0 border-t border-line bg-panel">
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
