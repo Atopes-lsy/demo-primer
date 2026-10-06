@@ -155,6 +155,7 @@
 .primer-fact:nth-child(n+3) { grid-column: 1 / -1; padding: 2px 0; border-radius: 0; background: transparent; display: flex; align-items: center; gap: 6px; }
 .primer-fact > p:first-child { color: #757b78; font-size: var(--primer-caption); font-weight: 400; flex-shrink: 0; }
 .primer-fact > p:nth-child(2) { font-size: var(--primer-body); font-weight: 500; }
+.primer-fact:nth-child(-n+2) > p:nth-child(2) { white-space: normal; overflow-wrap: anywhere; }
 .primer-fact:nth-child(n+3) > p:nth-child(2) { flex: 1; font-size: var(--primer-caption); margin: 0; }
 .primer-fact .text-danger { flex-shrink: 0; margin: 0 0 0 auto; padding: 3px 8px; border-radius: 8px; color: #a1322b; background: #fcf0ee; text-align: center; font-size: var(--primer-caption); }
 .primer-customer > button { min-height: 24px; border: 0; padding: 2px 12px; }
@@ -190,6 +191,11 @@
 .primer-completion { padding: 6px 9px; border-radius: 10px; background: var(--step-soft); color: var(--step-tone); font-size: var(--primer-body); line-height: 1.45; }
 .primer-action-note { margin-top: 4px; color: #747a76; font-size: var(--primer-caption); line-height: 1.4; overflow-wrap: anywhere; }
 .primer-action-result { animation: primer-step-in 420ms var(--primer-ease) both; }
+.primer-step-execution:has(.primer-action-result) .primer-step-label { display: none; }
+.primer-action-result .primer-completion { position: relative; overflow: hidden; padding: 3px 9px; }
+.primer-action-result .primer-action-note { margin-top: 2px; line-height: 1.3; }
+.primer-action-result .primer-completion::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg,transparent 20%,#ffffffb3 48%,transparent 76%); pointer-events: none; animation: primer-success-sheen 1100ms var(--primer-ease) both; }
+@keyframes primer-success-sheen { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
 .primer-advice > .border-t { flex: 0 0 auto; max-height: 88px; overflow-y: auto; scrollbar-width: thin; }
 .primer-evidence { display: flex; flex-direction: column; }
 .primer-evidence > button { flex: 0 0 34px; min-height: 34px; padding: 6px 14px; }

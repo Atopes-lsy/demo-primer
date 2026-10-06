@@ -48,6 +48,7 @@ type Props = {
   先例数量?: number
   onReviewArchive?: () => void
   已模拟入库?: boolean
+  执行摘要?: string
   onUseScript: () => void
   onReport: () => void
   onHandover: () => void
@@ -213,6 +214,7 @@ export default function PrimerPanel({
   先例数量,
   onReviewArchive,
   已模拟入库,
+  执行摘要,
   onUseScript,
   onReport,
   onHandover,
@@ -283,7 +285,7 @@ export default function PrimerPanel({
           全连 ? 'bg-panel text-ink-4' : 'bg-hold-soft text-hold-ink'
         }`}
       >
-        <span className={`size-1.5 shrink-0 rounded-full ${全连 ? 'bg-success' : 'bg-hold'}`} />
+        <span className={`size-1.5 shrink-0 rounded-full ${验收模式 ? 'bg-line' : 全连 ? 'bg-success' : 'bg-hold'}`} />
         {验收模式 ? '本地验收 · 未连接后台' : 全连 ? '接口 · 已连' : `剧本兜底 · ${兜底.join('、')}`}
       </p>
       </div>
@@ -326,6 +328,7 @@ export default function PrimerPanel({
           {session.建议 ? (
             <AdviceCard
               处理话术={session.本轮处置?.find((d) => d.输出 === '报备')?.话术}
+              执行摘要={执行摘要}
               key={`advice-${session.会话ID}-${session.建议.形态}`}
               advice={session.建议}
               onUseScript={onUseScript}
