@@ -103,7 +103,7 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
               这五行，`以前` 除了判「初次会话」什么都不干，见 `Props.以前`。 */}
           <div className="primer-customer-facts border-t border-line-soft">
             {可见.map((row) => (
-              <div key={row.标签} className="primer-fact border-b border-line-soft px-3 py-2 last:border-b-0">
+              <div key={`${row.标签}-${row.值}-${row.警示 ?? ''}`} data-motion={row.警示 ? 'promise' : row.标签 === '这是谁' ? 'identity' : undefined} className="primer-fact border-b border-line-soft px-3 py-2 last:border-b-0">
                 <p className="text-body font-medium text-ink-3">{row.标签}</p>
                 {/* **值只占一行**（2026-10-04）。原来它是随便折行的，而「这次要什么」
                     在这一改里换成了模型拆出来的短需求（` ＋ ` 连起来），那条规矩的

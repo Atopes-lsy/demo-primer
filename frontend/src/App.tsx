@@ -2149,6 +2149,7 @@ export default function App() {
       />
       <PrimerPanel
         session={active}
+        先例数量={先例库总数}
         onUseScript={handleUseScript}
         onReport={handleReport}
         onHandover={handleHandover}

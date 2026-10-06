@@ -18,6 +18,7 @@ export default function ReviewApp() {
   const [sessions, setSessions] = useState<Session[]>(() => structuredClone(reviewSessions))
   const [id, setId] = useState(sessions[0].会话ID)
   const [sent, setSent] = useState<Record<string, boolean>>({})
+  const [archived, setArchived] = useState<Record<string, boolean>>({})
   const active = sessions.find((s) => s.会话ID === id)!
   const patch = (fn: (s: Session) => Session) => setSessions((all) => all.map((s) => s.会话ID === id ? fn(s) : s))
   const send = (text: string) => {
@@ -31,9 +32,11 @@ export default function ReviewApp() {
   return <div className="flex h-full w-full overflow-hidden">
     <IconRail 会话数={sessions.length} />
     <SessionPanel sessions={sessions} activeId={id} onSelect={setId} 默认分组 />
-    <ChatPanel session={active} agent={agent} metrics={shopMetrics} 播放={snapshot} 隐藏回放
+    <ChatPanel key={id} session={active} agent={agent} metrics={shopMetrics} 播放={snapshot} 隐藏回放
       onDraftChange={(text) => patch((s) => ({...s,草稿:text}))} onSend={send} 本轮已发={sent[id]} />
     <PrimerPanel session={active} 验收模式 六源依据={reviewEvidence[id]} 兜底={[]}
+      先例数量={56 + Object.keys(archived).length} 已模拟入库={Boolean(archived[id])}
+      onReviewArchive={active.本轮处置?.some((d) => d.输出 === 'AI直发') ? () => setArchived((prev) => ({...prev,[id]:true})) : undefined}
       onUseScript={() => patch((s) => ({...s,草稿:s.建议?.话术 ?? ''}))}
       onReport={report} onHandover={transfer} onSendPending={noop} 报备态="等审批"
       本轮已发={sent[id]} 已判定 未开演={false} />

@@ -44,6 +44,9 @@ type Props = {
   session: Session | null
   六源依据?: Evidence[]
   验收模式?: boolean
+  先例数量?: number
+  onReviewArchive?: () => void
+  已模拟入库?: boolean
   onUseScript: () => void
   onReport: () => void
   onHandover: () => void
@@ -206,6 +209,9 @@ export default function PrimerPanel({
   session,
   六源依据,
   验收模式 = false,
+  先例数量,
+  onReviewArchive,
+  已模拟入库,
   onUseScript,
   onReport,
   onHandover,
@@ -385,7 +391,7 @@ export default function PrimerPanel({
                    那句话已经发出去了，读起来却像还压在手里等人点。
 
                「已自动发送」在 2026-10-05 之后是真的，就是现在这句。 */
-            <div className="primer-advice-empty primer-surface-in rounded-[18px] border border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
+            <div key={`ai-${session.会话ID}`} className="primer-advice-empty primer-surface-in rounded-[18px] border border-white/90 bg-panel/90 px-3 py-4 text-center text-body text-ink-4 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.18)] backdrop-blur-xl">
               {AI直发话术.length ? 'AI 直接发送' : '本轮无需客服动作'}
               <br />
               <span className="text-note">
@@ -396,10 +402,14 @@ export default function PrimerPanel({
                   {AI直发话术[0]}
                 </div>
               ) : null}
+              {验收模式 && onReviewArchive && <button type="button" disabled={已模拟入库} onClick={onReviewArchive}
+                className="primer-action primer-review-archive mt-3 rounded-xl border border-ai-line bg-ai-soft px-3 py-2 text-xs text-ai-ink disabled:cursor-default">
+                {已模拟入库 ? '已模拟入库 · 未写入后台' : '模拟会话收尾并入库'}
+              </button>}
             </div>
           )}
 
-          <EvidenceList key={`evidence-${session.会话ID}`} evidence={六源依据 ?? session.建议?.依据} />
+          <EvidenceList key={`evidence-${session.会话ID}`} evidence={六源依据 ?? session.建议?.依据} precedentCount={先例数量} review={验收模式} />
 
           {/* 暂时不画 —— 见 `显示交接包`。上面那个 `交接包` 照旧算着，翻回
               `true` 就上屏，中间不用补任何东西。 */}

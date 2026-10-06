@@ -185,15 +185,15 @@
 .primer-advice-body .bg-danger { background: #ae3d36; }
 .primer-advice-body .bg-risk-soft { border-color: transparent; border-radius: 12px; }
 .primer-advice > .border-t { flex: 0 0 auto; max-height: 72px; overflow-y: auto; scrollbar-width: thin; }
-.primer-evidence > button { min-height: 44px; padding: 10px 14px; }
-.primer-evidence > div { border: 0; padding: 0 14px 10px; }
-.primer-evidence-row { height: 28px; min-height: 28px; gap: 8px; }
+.primer-evidence > button { min-height: 38px; padding: 7px 14px; }
+.primer-evidence > div { border: 0; padding: 0 14px 6px; }
+.primer-evidence-row { height: 27px; min-height: 27px; gap: 8px; }
 .primer-evidence-row .truncate { font-size: 12px; font-weight: 400; }
 .primer-evidence-row .bg-hold { background: #bf9a28; }
 .primer-evidence-row .text-hold-ink { color: #806717; }
 .primer-evidence-row .text-ink-4 { color: #878d8a; }
 .primer-evidence { display: flex; flex-direction: column; }
-.primer-evidence > button { flex: 0 0 44px; }
+.primer-evidence > button { flex: 0 0 38px; }
 .primer-evidence > div { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 .primer-evidence-detail > summary { list-style: none; }
 .primer-evidence-detail > summary::-webkit-details-marker { display: none; }
@@ -218,16 +218,11 @@
   .primer-judgement { padding: 2px 8px; }
   .primer-evidence > button { flex-basis: 30px; min-height: 30px; padding: 4px 12px; }
   .primer-evidence > div { padding: 0 12px 4px; }
-  .primer-evidence-row { height: 25px; min-height: 25px; }
+  .primer-evidence-row { height: 24px; min-height: 24px; }
 }
 .primer-judgement { position: absolute; right: 12px; top: 7px; max-width: 62%; }
 .primer-advice > header { padding-right: 140px; }
 .primer-advice-body > div:first-of-type { margin-top: 0; }
-.primer-evidence-detail:nth-child(2) .primer-evidence-row { animation-delay: 15ms; }
-.primer-evidence-detail:nth-child(3) .primer-evidence-row { animation-delay: 30ms; }
-.primer-evidence-detail:nth-child(4) .primer-evidence-row { animation-delay: 45ms; }
-.primer-evidence-detail:nth-child(5) .primer-evidence-row { animation-delay: 60ms; }
-.primer-evidence-detail:nth-child(6) .primer-evidence-row { animation-delay: 75ms; }
 
 /* 发送前提示脱离文档流：两种强度共用下沿，不推挤千牛输入框。 */
 .primer-composer-host { position: relative; flex-basis: 190px; height: 190px; min-height: 190px; }
@@ -311,11 +306,6 @@
 .primer-evidence-row {
   animation: primer-surface-in var(--primer-row-duration) var(--primer-ease) both;
 }
-.primer-evidence-row:nth-child(2) { animation-delay: 15ms; }
-.primer-evidence-row:nth-child(3) { animation-delay: 30ms; }
-.primer-evidence-row:nth-child(4) { animation-delay: 45ms; }
-.primer-evidence-row:nth-child(5) { animation-delay: 60ms; }
-.primer-evidence-row:nth-child(6) { animation-delay: 75ms; }
 .primer-judgement, .primer-fact .text-danger {
   transition: background-color var(--default-transition-duration), color var(--default-transition-duration);
 }
@@ -339,6 +329,70 @@
 .primer-action:active {
   transform: translateY(0) scale(0.985);
 }
+
+/* 原案七项：只改变插件内部绘制，不改变槽位高度，不用 JS 控制时间。 */
+.primer-panel, .primer-confirm { --primer-semantic-duration: 300ms; }
+.primer-fact[data-motion="identity"] > p:nth-child(n+2) {
+  animation: primer-identity var(--primer-semantic-duration) var(--primer-ease) both;
+}
+@keyframes primer-identity {
+  0% { opacity: .2; color: #a9afaa; filter: blur(2px); transform: translateY(5px); }
+  45% { opacity: .55; filter: blur(.5px); }
+  100% { opacity: 1; filter: blur(0); transform: none; }
+}
+.primer-evidence-detail { --source-delay: 0ms; }
+.primer-evidence-detail:nth-child(2) { --source-delay: 20ms; }
+.primer-evidence-detail:nth-child(3) { --source-delay: 40ms; }
+.primer-evidence-detail:nth-child(4) { --source-delay: 60ms; }
+.primer-evidence-detail:nth-child(5) { --source-delay: 80ms; }
+.primer-evidence-detail:nth-child(6) { --source-delay: 100ms; }
+.primer-evidence-detail .primer-evidence-row {
+  animation: primer-source-scan 200ms var(--primer-ease) var(--source-delay) both;
+}
+.primer-evidence-detail[data-hit="true"] .primer-evidence-row > span:first-child {
+  animation: primer-source-dot 200ms var(--primer-ease) var(--source-delay) both;
+}
+@keyframes primer-source-scan {
+  from { opacity: .3; background: #f0f2ef; transform: translateY(4px); }
+  to { opacity: 1; background: transparent; transform: none; }
+}
+@keyframes primer-source-dot {
+  from { background-color: #d7dcd7; transform: scale(.6); }
+  to { background-color: #bf9a28; transform: scale(1); }
+}
+.primer-source-count { animation: primer-count-settle 300ms ease-out both; }
+@keyframes primer-count-settle { from { opacity: .15; } 65% { opacity: .3; } to { opacity: 1; } }
+.primer-confirm-soft { animation: primer-soft-reveal 300ms var(--primer-ease) both; }
+@keyframes primer-soft-reveal {
+  from { opacity: .2; clip-path: inset(75% 0 0 round 18px); transform: translateY(8px) scale(.985); }
+  to { opacity: 1; clip-path: inset(0 round 18px); transform: none; }
+}
+.primer-confirm-fact[role="alert"] { animation: primer-fact-alert 300ms ease-out both; }
+@keyframes primer-fact-alert {
+  0% { opacity: .4; transform: translateY(5px); }
+  30% { opacity: 1; transform: translateX(-3px); }
+  55% { transform: translateX(3px); }
+  78% { transform: translateX(-1px); }
+  100% { transform: none; }
+}
+.primer-fact[data-motion="promise"] { animation: primer-promise-reveal 300ms var(--primer-ease) both; }
+@keyframes primer-promise-reveal {
+  from { clip-path: inset(100% 0 0); opacity: .2; }
+  to { clip-path: inset(0); opacity: 1; }
+}
+.primer-advice[data-tone="report"] .primer-judgement { background: #fcf2e8; color: #965c16; }
+.primer-advice[data-tone="risk"] .primer-judgement {
+  background: #fcf0ee; color: #ac443d;
+  animation: primer-risk-upgrade 300ms ease-in-out both;
+}
+.primer-advice[data-tone="risk"] .bg-risk-soft { animation: primer-risk-upgrade 300ms ease-in-out both; }
+@keyframes primer-risk-upgrade {
+  0%, 20% { background-color: #fcf2e8; color: #965c16; box-shadow: 0 0 0 2px #e7c7af55; }
+  100% { background-color: #fcf0ee; color: #ac443d; box-shadow: 0 0 0 0 transparent; }
+}
+.primer-precedent { display: flex; flex: 0 0 24px; align-items: center; justify-content: flex-end; gap: 5px; padding: 0 14px; margin-top: auto; font-size: 11px; color: #747a79; }
+.primer-precedent-number { display: inline-block; font-size: 13px; font-variant-numeric: tabular-nums; color: #526855; animation: primer-number-roll 300ms var(--primer-ease) both; }
+@keyframes primer-number-roll { from { transform: translateY(7px); opacity: .15; } 65% { transform: translateY(-1px); opacity: 1; } to { transform: none; opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   .primer-panel *, .primer-confirm *, .primer-confirm,

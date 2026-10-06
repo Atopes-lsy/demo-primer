@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { EVIDENCE_SOURCE, type Evidence, type EvidenceSource } from '../../types'
 
 /** 与建议卡解耦。undefined = 尚未提供结果；不把缺数据伪装成「无记录」。 */
-export default function EvidenceList({ evidence }: { evidence?: Evidence[] }) {
+export default function EvidenceList({ evidence, precedentCount, review = false }: { evidence?: Evidence[]; precedentCount?: number; review?: boolean }) {
   const [open, setOpen] = useState(true)
   const sources = Object.keys(EVIDENCE_SOURCE) as EvidenceSource[]
   const hits = sources.filter((source) => evidence?.some((e) => e.序号 === source && e.用上))
@@ -12,7 +12,7 @@ export default function EvidenceList({ evidence }: { evidence?: Evidence[] }) {
       <button type="button" aria-expanded={open} onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-xs font-medium text-ink-2 hover:bg-canvas/70">
         <span className="text-base font-semibold text-ink">六源依据</span>
-        <span className="ml-auto text-body text-ink-3">{evidence ? `${hits.length}/6 源被采用` : '等待结果'}</span>
+        <span key={JSON.stringify(evidence)} className="primer-source-count ml-auto text-body text-ink-3">{evidence ? `${hits.length}/6 源被采用` : '等待结果'}</span>
         {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
       </button>
       {open && <div className="border-t border-line-soft px-3 pb-2.5">
@@ -20,7 +20,7 @@ export default function EvidenceList({ evidence }: { evidence?: Evidence[] }) {
           const entries = evidence?.filter((e) => e.序号 === source) ?? []
           const hit = hits.includes(source)
           const status = hit ? '已采用' : evidence === undefined ? '待提供' : entries.length ? '未采用' : '未返回'
-          return <details key={source} className="primer-evidence-detail">
+          return <details key={`${source}-${JSON.stringify(entries)}`} data-hit={hit} className="primer-evidence-detail">
             <summary className="primer-evidence-row flex min-h-8 cursor-pointer items-center gap-2 border-b border-line-soft text-xs">
               <span className={`size-2 shrink-0 rounded-full ${hit ? 'bg-hold' : 'bg-line'}`} />
               <span className="min-w-0 flex-1 truncate text-ink-2">{EVIDENCE_SOURCE[source]}</span>
@@ -34,6 +34,10 @@ export default function EvidenceList({ evidence }: { evidence?: Evidence[] }) {
           </details>
         })}
       </div>}
+      {precedentCount !== undefined && <p className="primer-precedent" aria-live="polite">
+        <span>{review ? '模拟先例库' : '先例库'}</span>
+        <strong key={precedentCount} className="primer-precedent-number">{precedentCount}</strong><span>条</span>
+      </p>}
     </section>
   )
 }

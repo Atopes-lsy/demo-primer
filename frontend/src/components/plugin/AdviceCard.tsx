@@ -147,6 +147,7 @@ export default function AdviceCard({
   return (
     <>
       <section
+        data-tone={advice.形态 === '有风险' ? 'risk' : advice.形态 === '需要授权' ? 'report' : 'confirm'}
         className={`primer-advice primer-surface-in overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
       >
       <header className="flex items-center justify-between px-3 py-2">
