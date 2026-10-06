@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import PrecedentCount from './PrecedentCount'
 import { EVIDENCE_SOURCE, type Evidence, type EvidenceSource } from '../../types'
 
 /** 与建议卡解耦。undefined = 尚未提供结果；不把缺数据伪装成「无记录」。 */
@@ -36,7 +37,7 @@ export default function EvidenceList({ evidence, precedentCount, review = false 
       </div>}
       {precedentCount !== undefined && <p className="primer-precedent" aria-live="polite">
         <span>{review ? '模拟先例库' : '先例库'}</span>
-        <strong key={precedentCount} className="primer-precedent-number">{precedentCount}</strong><span>条</span>
+        <PrecedentCount count={precedentCount} /><span>条</span>
       </p>}
     </section>
   )

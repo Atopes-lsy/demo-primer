@@ -118,112 +118,133 @@
   }
 }
 
-/* C 版浮岛材质。仅作用于 Primer，不改千牛字号、导航、消息气泡或指标条。 */
-.primer-panel {
-  min-height: 0;
-  background: #f3f5f4;
-  --primer-title: 15px;
-  --primer-body: 13px;
-  --primer-caption: 12px;
+/* 2026-10-06: C 版结构与动效。时长上限经用户与技术确认取消。
+   动效只属于插件/浮层；不以动画完成作为发送/审批/转交条件。 */
+.primer-panel, .primer-confirm {
+  --primer-title: 15px; --primer-body: 13px; --primer-caption: 12px;
+  --primer-ease: cubic-bezier(.16,1,.3,1);
 }
-
-.primer-slots {
-  display: grid;
-  grid-template-rows: 220px minmax(0, 1fr) 234px;
-  gap: 8px;
-  padding: 8px;
-  min-height: 0;
-  align-content: stretch;
-}
-
+.primer-panel { min-height: 0; width: 390px; background: #f3f5f4; }
+.primer-brand-row { flex: 0 0 48px; display: flex; align-items: center; gap: 9px; padding: 5px 14px; }
+.primer-brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 11px; background: linear-gradient(145deg,#363b3f,#191d20); color: #c9a227; font-size: 20px; box-shadow: 0 5px 10px -5px #3335; }
+.primer-brand-name { display: flex; flex-direction: column; gap: 1px; }
+.primer-brand-name strong { font-size: 15px; line-height: 18px; font-weight: 600; }
+.primer-brand-name span { color: #757b78; font-size: 10px; }
+.primer-connection { margin-left: auto; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 999px; font-size: 10px; white-space: nowrap; }
+.primer-slots { display: grid; grid-template-rows: 176px minmax(250px,1fr) 224px; gap: 8px; padding: 8px; min-height: 0; align-content: stretch; }
 .primer-slots > * { min-width: 0; margin: 0; }
 .primer-customer { grid-row: 1; }
 .primer-advice, .primer-advice-empty { grid-row: 2; }
 .primer-evidence { grid-row: 3; }
 .primer-slots > section, .primer-advice-empty {
-  border-radius: 20px;
-  border-color: rgba(255,255,255,.94);
-  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(255,255,255,.94); border-radius: 20px;
+  background: rgba(255,255,255,.95);
   box-shadow: 0 12px 28px -14px rgba(43,50,48,.18), 0 2px 6px rgba(43,50,48,.025);
+  min-height: 0;
 }
-.primer-panel .text-base { font-size: var(--primer-title); line-height: 1.45; }
-.primer-panel .text-xs { font-size: var(--primer-body); line-height: 1.55; }
-.primer-panel .text-body, .primer-panel .text-note {
-  font-size: var(--primer-caption); line-height: 1.5;
-}
+.primer-panel .text-base { font-size: var(--primer-title); line-height: 1.4; }
+.primer-panel .text-xs { font-size: var(--primer-body); line-height: 1.45; }
+.primer-panel .text-body, .primer-panel .text-note { font-size: var(--primer-caption); line-height: 1.4; }
 .primer-panel .text-ink-3 { color: #747a79; }
 .primer-panel .text-ink-4 { color: #818886; }
-.primer-panel h2 { letter-spacing: -.015em; font-weight: 600; }
-.primer-panel section > header { min-height: 40px; padding: 10px 14px 7px; }
+.primer-panel h2 { font-size: var(--primer-title); line-height: 1.4; font-weight: 600; letter-spacing: -.015em; }
+.primer-panel section > header { min-height: 36px; padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
 .primer-customer { overflow-y: auto; scrollbar-width: thin; }
-.primer-customer-facts {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-  gap: 8px;
-  margin: 0 12px 8px;
-  border: 0;
-}
-.primer-fact { min-width: 0; padding: 8px 10px; border: 0; border-radius: 12px; background: #f5f6f4; }
-.primer-fact:nth-child(n+3) { grid-column: 1 / -1; padding: 4px 8px; background: transparent; }
-.primer-fact:has(.text-danger) { display: grid; grid-template-columns: 1fr auto; gap: 0 6px; }
-.primer-fact:has(.text-danger) > p:first-child { grid-column: 1 / -1; }
-.primer-fact:has(.text-danger) > .text-danger { grid-column: 2; grid-row: 2; align-self: center; }
-.primer-fact > p:first-child { color: #757b78; font-size: 12px; font-weight: 400; }
-.primer-fact > p:nth-child(2) { font-size: 13px; font-weight: 500; }
-.primer-fact .text-danger { width: fit-content; margin-left: auto; padding: 2px 8px; border-radius: 8px; color: #a1322b; background: #fcf0ee; text-align: center; }
-.primer-customer > button { min-height: 28px; border-top: 0; padding: 4px 12px; }
-.primer-advice { position: relative; display: flex; flex-direction: column; min-height: 0; }
-.primer-advice:has(.primer-advice-body > div > .primer-action) { padding-bottom: 66px; }
-.primer-advice-body > div > button.primer-action { position: absolute; bottom: 14px; left: 14px; width: calc(100% - 28px); margin: 0; z-index: 2; }
-.primer-advice-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 0 14px 12px; }
-.primer-judgement { max-width: 100%; padding: 5px 10px; text-align: center; font-weight: 500; }
-.primer-advice-body > div > p:first-child { font-size: 14px; line-height: 1.5; font-weight: 600; }
-.primer-advice-body > div > p { overflow-wrap: anywhere; }
-.primer-advice-body > div > .primer-action { min-height: 40px; margin-top: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
-.primer-advice-body .bg-brand { background: #2f3834; }
-.primer-advice-body .bg-hold { background: #965c16; }
-.primer-advice-body .bg-danger { background: #ae3d36; }
-.primer-advice-body .bg-risk-soft { border-color: transparent; border-radius: 12px; }
-.primer-advice > .border-t { flex: 0 0 auto; max-height: 72px; overflow-y: auto; scrollbar-width: thin; }
-.primer-evidence > button { min-height: 38px; padding: 7px 14px; }
-.primer-evidence > div { border: 0; padding: 0 14px 6px; }
-.primer-evidence-row { height: 27px; min-height: 27px; gap: 8px; }
-.primer-evidence-row .truncate { font-size: 12px; font-weight: 400; }
+.primer-customer-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; margin: 0 12px 4px; border: 0; }
+.primer-fact { position: relative; min-width: 0; padding: 6px 8px; border: 0; border-radius: 11px; background: #f5f6f4; }
+.primer-fact:nth-child(n+3) { grid-column: 1 / -1; padding: 2px 0; border-radius: 0; background: transparent; display: flex; align-items: center; gap: 6px; }
+.primer-fact > p:first-child { color: #757b78; font-size: var(--primer-caption); font-weight: 400; flex-shrink: 0; }
+.primer-fact > p:nth-child(2) { font-size: var(--primer-body); font-weight: 500; }
+.primer-fact:nth-child(n+3) > p:nth-child(2) { flex: 1; font-size: var(--primer-caption); margin: 0; }
+.primer-fact .text-danger { flex-shrink: 0; margin: 0 0 0 auto; padding: 3px 8px; border-radius: 8px; color: #a1322b; background: #fcf0ee; text-align: center; font-size: var(--primer-caption); }
+.primer-customer > button { min-height: 24px; border: 0; padding: 2px 12px; }
+.primer-structured { --step-tone: #383f3b; --step-soft: #f0f2f1; display: flex; flex-direction: column; overflow: hidden; }
+.primer-structured[data-tone="auto"] { --step-tone: #315f4b; --step-soft: #eff6f1; }
+.primer-structured[data-tone="report"] { --step-tone: #965c16; --step-soft: #fff3e1; }
+.primer-structured[data-tone="risk"] { --step-tone: #ad3d35; --step-soft: #fcf0ee; }
+.primer-judgement { display: inline-flex; justify-content: center; align-items: center; margin-left: auto; min-height: 26px; padding: 4px 10px; border-radius: 9px; background: var(--step-soft); color: var(--step-tone); font-size: var(--primer-caption); font-weight: 500; white-space: nowrap; }
+.primer-advice-body { min-height: 0; flex: 1; overflow-y: auto; scrollbar-width: thin; padding: 0 14px 12px; }
+.primer-advice-title { margin: 0 0 7px; font-size: var(--primer-body); line-height: 1.4; font-weight: 600; color: #343a37; }
+.primer-step-flow { position: relative; padding: 0; margin: 0; list-style: none; }
+.primer-step-flow::before { content: ''; position: absolute; left: 10px; width: 1px; top: 11px; bottom: 26px; background: color-mix(in srgb,var(--step-tone) 26%,#e3e5e3); transform-origin: top; animation: primer-flow-grow 1000ms var(--primer-ease) both; }
+.primer-step { position: relative; display: grid; grid-template-columns: 21px minmax(0,1fr); gap: 8px; padding-bottom: 7px; animation: primer-step-in 380ms var(--primer-ease) both; }
+.primer-step:nth-child(2) { animation-delay: 320ms; }
+.primer-step:nth-child(3) { animation-delay: 640ms; padding-bottom: 0; }
+.primer-step-number { width: 21px; height: 21px; z-index: 1; display: grid; place-items: center; border-radius: 50%; background: var(--step-soft); color: var(--step-tone); box-shadow: 0 0 0 3px #fff; font-size: 11px; font-weight: 500; }
+.primer-step-label { display: block; font-size: var(--primer-caption); line-height: 1.4; color: #7d827e; }
+.primer-help { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-left: 4px; border: 1px solid #c6cac6; border-radius: 50%; font-size: 10px; cursor: help; }
+.primer-help-popover { position: absolute; z-index: 5; left: 29px; right: 0; top: 20px; display: none; padding: 10px 12px; border: 1px solid #eceee9; border-radius: 12px; background: #fffefa; color: #565d56; box-shadow: 0 10px 24px #24302420; font-size: 12px; line-height: 1.5; }
+.primer-help-popover > span { display: block; }
+.primer-help:hover .primer-help-popover, .primer-help:focus .primer-help-popover { display: block; }
+.primer-step:has(.primer-help:hover), .primer-step:has(.primer-help:focus) { z-index: 5; }
+.primer-step-judgement { font-size: var(--primer-body); font-weight: 500; line-height: 1.45; color: var(--step-tone); overflow-wrap: anywhere; }
+.primer-script { margin: 3px 0; padding: 7px 9px; border: 1px solid #f0f1ed; border-radius: 11px; background: #f5f5f2; color: #383e3a; font-size: var(--primer-body); line-height: 1.5; overflow-wrap: anywhere; }
+.primer-source-caption { color: #7b807c; font-size: var(--primer-caption); line-height: 1.4; }
+.primer-risk-label { display: block; color: var(--step-tone); font-size: var(--primer-caption); line-height: 1.4; }
+.primer-step-execution .primer-step-label { margin-bottom: 5px; }
+.primer-action { transition: transform 180ms var(--primer-ease), box-shadow 220ms ease, background-color 180ms ease; }
+.primer-action:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 7px 16px -9px var(--step-tone,#665842); }
+.primer-action:active:not(:disabled) { transform: scale(.98); }
+.primer-primary { position: relative; display: block; width: 100%; min-height: 36px; padding: 7px 12px; border-radius: 12px; background: var(--step-tone); color: white; font-size: var(--primer-body); font-weight: 500; box-shadow: inset 0 1px 0 #ffffff30,0 6px 13px -8px var(--step-tone); }
+.primer-primary:disabled { opacity: .7; cursor: default; }
+.primer-completion { padding: 6px 9px; border-radius: 10px; background: var(--step-soft); color: var(--step-tone); font-size: var(--primer-body); line-height: 1.45; }
+.primer-action-note { margin-top: 4px; color: #747a76; font-size: var(--primer-caption); line-height: 1.4; overflow-wrap: anywhere; }
+.primer-action-result { animation: primer-step-in 420ms var(--primer-ease) both; }
+.primer-advice > .border-t { flex: 0 0 auto; max-height: 88px; overflow-y: auto; scrollbar-width: thin; }
+.primer-evidence { display: flex; flex-direction: column; }
+.primer-evidence > button { flex: 0 0 34px; min-height: 34px; padding: 6px 14px; }
+.primer-evidence > div { border: 0; padding: 0 14px 3px; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.primer-evidence-row { height: 26px; min-height: 26px; gap: 8px; }
+.primer-evidence-row .truncate { font-size: var(--primer-caption); font-weight: 400; }
 .primer-evidence-row .bg-hold { background: #bf9a28; }
 .primer-evidence-row .text-hold-ink { color: #806717; }
-.primer-evidence-row .text-ink-4 { color: #878d8a; }
-.primer-evidence { display: flex; flex-direction: column; }
-.primer-evidence > button { flex: 0 0 38px; }
-.primer-evidence > div { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 .primer-evidence-detail > summary { list-style: none; }
 .primer-evidence-detail > summary::-webkit-details-marker { display: none; }
 .primer-evidence-detail[open] .primer-source-chevron { transform: rotate(90deg); }
 .primer-source-detail { padding: 8px 10px; background: #f6f7f5; border-radius: 10px; }
-/* 常用桌面高度下三槽同屏：先收空隙，不缩放千牛，不用裁切假装没有滚动。 */
+.primer-precedent { display: flex; flex: 0 0 25px; align-items: center; justify-content: flex-end; gap: 5px; padding: 0 14px; margin-top: auto; font-size: var(--primer-caption); color: #747a79; }
+.primer-count-swap { position: relative; display: inline-grid; min-width: 2ch; }
+.primer-precedent-number, .primer-count-old { grid-area: 1 / 1; font-size: 13px; font-variant-numeric: tabular-nums; color: #665413; }
+.primer-count-old { opacity: 0; }
+.primer-count-delta { position: absolute; right: 100%; top: 0; margin-right: 5px; color: #a17b19; font-size: 11px; font-style: normal; opacity: 0; }
+.primer-count-swap[data-changed="true"] .primer-count-old { animation: primer-number-out 300ms ease-in 500ms both; }
+.primer-count-swap[data-changed="true"] .primer-precedent-number { animation: primer-number-in 620ms var(--primer-ease) 800ms both; }
+.primer-count-delta { animation: primer-delta 1650ms var(--primer-ease) both; }
+/* 框架不入场、不改高度；三个内容区从同一时刻启动，各自内部错峰。 */
+.primer-fact[data-motion="identity"] > p:nth-child(n+2) { animation: primer-identity 780ms var(--primer-ease) both; }
+.primer-fact[data-motion="promise"] { animation: primer-promise 600ms var(--primer-ease) 320ms both; }
+.primer-fact[data-motion="promise"] .text-danger { animation: primer-step-in 380ms var(--primer-ease) 700ms both; }
+.primer-evidence-detail { --source-delay: 0ms; }
+.primer-evidence-detail:nth-child(2) { --source-delay: 160ms; }
+.primer-evidence-detail:nth-child(3) { --source-delay: 320ms; }
+.primer-evidence-detail:nth-child(4) { --source-delay: 480ms; }
+.primer-evidence-detail:nth-child(5) { --source-delay: 640ms; }
+.primer-evidence-detail:nth-child(6) { --source-delay: 800ms; }
+.primer-evidence-row { animation: primer-source-scan 440ms var(--primer-ease) var(--source-delay) both; }
+.primer-evidence-detail[data-hit="true"] .primer-evidence-row > span:first-child { animation: primer-source-dot 400ms var(--primer-ease) calc(var(--source-delay) + 230ms) both; }
+.primer-evidence-detail[data-hit="false"] .primer-evidence-row { color: #8b908d; }
+.primer-source-count { animation: primer-count-settle 320ms ease-out 1430ms both; }
+.primer-structured[data-tone="risk"] { animation: primer-risk-surface 760ms ease-in-out 650ms both; }
+.primer-structured[data-tone="risk"] .primer-judgement { animation: primer-risk-upgrade 760ms ease-in-out 450ms both; }
+.primer-structured[data-tone="risk"] .primer-step-flow::before { animation: primer-flow-grow 1000ms var(--primer-ease) both, primer-risk-line 760ms ease-in-out 450ms both; }
 @media (max-height: 820px) {
-  .primer-panel { width: 390px; --primer-title: 14px; --primer-body: 12px; --primer-caption: 11.5px; }
-  .primer-slots { grid-template-rows: 180px minmax(0, 1fr) 204px; }
-  .primer-panel section > header { min-height: 30px; padding: 6px 12px; }
-  .primer-fact { padding: 5px 8px; }
-  .primer-fact:nth-child(n+3) { padding: 2px 8px; }
-  .primer-fact > p:first-child { font-size: 11.5px; }
-  .primer-fact > p:nth-child(2) { font-size: 12px; }
-  .primer-customer-facts { gap: 4px; margin-bottom: 4px; }
-  .primer-customer > button { min-height: 24px; padding: 2px 12px; }
-  .primer-advice-body { padding: 0 12px 8px; }
-  .primer-advice:has(.primer-advice-body > div > .primer-action) { padding-bottom: 48px; }
-  .primer-advice-body > div > button.primer-action { bottom: 8px; min-height: 34px; height: 34px; }
-  .primer-advice-body > div > p:first-child { font-size: 13px; }
-  .primer-advice-body .mt-2 { margin-top: 5px; }
-  .primer-judgement { padding: 2px 8px; }
+  .primer-panel { --primer-title: 14px; --primer-body: 12px; --primer-caption: 11.5px; }
+  .primer-slots { grid-template-rows: 150px minmax(246px,1fr) 198px; }
+  .primer-panel section > header { min-height: 30px; padding: 5px 12px; }
+  .primer-customer-facts { gap: 4px 7px; margin-bottom: 3px; }
+  .primer-fact { padding: 4px 7px; }
+  .primer-fact:nth-child(n+3) { padding: 1px 0; }
+  .primer-advice-body { padding: 0 12px 6px; }
+  .primer-advice-title { margin-bottom: 5px; }
+  .primer-step { padding-bottom: 5px; }
+  .primer-script { padding: 5px 8px; }
+  .primer-primary { min-height: 34px; padding: 6px 10px; }
   .primer-evidence > button { flex-basis: 30px; min-height: 30px; padding: 4px 12px; }
-  .primer-evidence > div { padding: 0 12px 4px; }
-  .primer-evidence-row { height: 24px; min-height: 24px; }
+  .primer-evidence > div { padding: 0 12px 3px; }
+  .primer-evidence-row { height: 23px; min-height: 23px; }
 }
-.primer-judgement { position: absolute; right: 12px; top: 7px; max-width: 62%; }
-.primer-advice > header { padding-right: 140px; }
-.primer-advice-body > div:first-of-type { margin-top: 0; }
-
+/* 极小窗口保留必要滚动；不能为假装同屏而裁掉正文。 */
+@media (max-height: 680px) { .primer-slots { overflow-y: auto; } }
 /* 发送前提示脱离文档流：两种强度共用下沿，不推挤千牛输入框。 */
 .primer-composer-host { position: relative; flex-basis: 190px; height: 190px; min-height: 190px; }
 .primer-composer-host > textarea { height: 76px; }
@@ -260,148 +281,34 @@
 .primer-composer-host:has(.primer-confirm-fact) > .primer-confirm-soft { left: 12px; right: auto; }
 .primer-confirm button:focus-visible { outline: 2px solid #806717; outline-offset: 3px; }
 
-/* 动效令牌单独作用于插件。B 版交接硬线：含错峰的整段不超过 300ms。 */
-.primer-panel, .primer-confirm {
-  --primer-enter-duration: 240ms;
-  --primer-row-duration: 180ms;
-  --primer-ease: cubic-bezier(.16,1,.3,1);
-}
 
-/* Primer 自有区域的入场与按压反馈；外框和千牛原生区域不动。 */
-@keyframes primer-surface-in {
-  from {
-    opacity: .35;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes primer-float-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px) scale(.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.primer-surface-in {
-  animation: none;
-}
-
-.primer-customer-facts,
-.primer-advice-body,
-.primer-advice-empty > div {
-  animation: primer-surface-in var(--primer-enter-duration) var(--primer-ease) both;
-}
-
-/* 保持包含绝对定位按钮的父层没有 transform，避免按钮跟随内容漂移。 */
-.primer-advice-body { animation-name: primer-content-fade; }
-@keyframes primer-content-fade { from { opacity: .35; } to { opacity: 1; } }
-.primer-evidence-row {
-  animation: primer-surface-in var(--primer-row-duration) var(--primer-ease) both;
-}
-.primer-judgement, .primer-fact .text-danger {
-  transition: background-color var(--default-transition-duration), color var(--default-transition-duration);
-}
-
-.primer-float-in {
-  animation: primer-float-in var(--primer-enter-duration) var(--primer-ease) both;
-}
-
-.primer-action {
-  transition:
-    transform var(--default-transition-duration) cubic-bezier(0.2, 0.8, 0.2, 1),
-    filter var(--default-transition-duration) ease,
-    box-shadow var(--default-transition-duration) ease;
-}
-
-.primer-action:hover {
-  transform: translateY(-1px);
-  filter: saturate(1.04);
-}
-
-.primer-action:active {
-  transform: translateY(0) scale(0.985);
-}
-
-/* 原案七项：只改变插件内部绘制，不改变槽位高度，不用 JS 控制时间。 */
-.primer-panel, .primer-confirm { --primer-semantic-duration: 300ms; }
-.primer-fact[data-motion="identity"] > p:nth-child(n+2) {
-  animation: primer-identity var(--primer-semantic-duration) var(--primer-ease) both;
-}
-@keyframes primer-identity {
-  0% { opacity: .2; color: #a9afaa; filter: blur(2px); transform: translateY(5px); }
-  45% { opacity: .55; filter: blur(.5px); }
-  100% { opacity: 1; filter: blur(0); transform: none; }
-}
-.primer-evidence-detail { --source-delay: 0ms; }
-.primer-evidence-detail:nth-child(2) { --source-delay: 20ms; }
-.primer-evidence-detail:nth-child(3) { --source-delay: 40ms; }
-.primer-evidence-detail:nth-child(4) { --source-delay: 60ms; }
-.primer-evidence-detail:nth-child(5) { --source-delay: 80ms; }
-.primer-evidence-detail:nth-child(6) { --source-delay: 100ms; }
-.primer-evidence-detail .primer-evidence-row {
-  animation: primer-source-scan 200ms var(--primer-ease) var(--source-delay) both;
-}
-.primer-evidence-detail[data-hit="true"] .primer-evidence-row > span:first-child {
-  animation: primer-source-dot 200ms var(--primer-ease) var(--source-delay) both;
-}
-@keyframes primer-source-scan {
-  from { opacity: .3; background: #f0f2ef; transform: translateY(4px); }
-  to { opacity: 1; background: transparent; transform: none; }
-}
-@keyframes primer-source-dot {
-  from { background-color: #d7dcd7; transform: scale(.6); }
-  to { background-color: #bf9a28; transform: scale(1); }
-}
-.primer-source-count { animation: primer-count-settle 300ms ease-out both; }
-@keyframes primer-count-settle { from { opacity: .15; } 65% { opacity: .3; } to { opacity: 1; } }
-.primer-confirm-soft { animation: primer-soft-reveal 300ms var(--primer-ease) both; }
-@keyframes primer-soft-reveal {
-  from { opacity: .2; clip-path: inset(75% 0 0 round 18px); transform: translateY(8px) scale(.985); }
-  to { opacity: 1; clip-path: inset(0 round 18px); transform: none; }
-}
-.primer-confirm-fact[role="alert"] { animation: primer-fact-alert 300ms ease-out both; }
-@keyframes primer-fact-alert {
-  0% { opacity: .4; transform: translateY(5px); }
-  30% { opacity: 1; transform: translateX(-3px); }
-  55% { transform: translateX(3px); }
-  78% { transform: translateX(-1px); }
-  100% { transform: none; }
-}
-.primer-fact[data-motion="promise"] { animation: primer-promise-reveal 300ms var(--primer-ease) both; }
-@keyframes primer-promise-reveal {
-  from { clip-path: inset(100% 0 0); opacity: .2; }
-  to { clip-path: inset(0); opacity: 1; }
-}
-.primer-advice[data-tone="report"] .primer-judgement { background: #fcf2e8; color: #965c16; }
-.primer-advice[data-tone="risk"] .primer-judgement {
-  background: #fcf0ee; color: #ac443d;
-  animation: primer-risk-upgrade 300ms ease-in-out both;
-}
-.primer-advice[data-tone="risk"] .bg-risk-soft { animation: primer-risk-upgrade 300ms ease-in-out both; }
-@keyframes primer-risk-upgrade {
-  0%, 20% { background-color: #fcf2e8; color: #965c16; box-shadow: 0 0 0 2px #e7c7af55; }
-  100% { background-color: #fcf0ee; color: #ac443d; box-shadow: 0 0 0 0 transparent; }
-}
-.primer-precedent { display: flex; flex: 0 0 24px; align-items: center; justify-content: flex-end; gap: 5px; padding: 0 14px; margin-top: auto; font-size: 11px; color: #747a79; }
-.primer-precedent-number { display: inline-block; font-size: 13px; font-variant-numeric: tabular-nums; color: #526855; animation: primer-number-roll 300ms var(--primer-ease) both; }
-@keyframes primer-number-roll { from { transform: translateY(7px); opacity: .15; } 65% { transform: translateY(-1px); opacity: 1; } to { transform: none; opacity: 1; } }
-
+.primer-confirm-soft { animation: primer-soft-reveal 480ms var(--primer-ease) both; }
+.primer-confirm-fact[role="alert"] { animation: primer-soft-reveal 420ms var(--primer-ease) both, primer-fact-alert 340ms ease-in-out 420ms; }
+.primer-confirm-fact > div:first-of-type > p { animation: primer-step-in 360ms var(--primer-ease) 500ms both; }
+.primer-confirm-fact > div:first-of-type > p:nth-child(2) { animation-delay: 750ms; border-left: 2px solid #cf827a; background: #ffffff90; padding: 3px 6px; border-radius: 6px; }
+.primer-confirm-fact > div:first-of-type > p:nth-child(3) { animation-delay: 1000ms; border-left: 2px solid #c7a35e; padding: 3px 6px; background: #fffaf0b3; border-radius: 6px; }
+.primer-confirm .primer-action:focus-visible, .primer-panel button:focus-visible { outline: 2px solid #a18b47; outline-offset: 2px; }
+@keyframes primer-step-in { from { opacity: 0; transform: translateY(6px); filter: blur(.5px); } 80% { opacity: 1; transform: translateY(-1px); filter: none; } to { opacity: 1; transform: none; filter: none; } }
+@keyframes primer-flow-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes primer-identity { 0% { opacity: .3; color: #a8aaa6; } 24% { opacity: .1; } 45% { opacity: 0; transform: translateY(4px); } 85% { opacity: 1; transform: translateY(-1px); } 100% { opacity: 1; transform: none; } }
+@keyframes primer-promise { from { clip-path: inset(0 0 100% 0 round 8px); opacity: 0; transform: translateY(-3px); } to { clip-path: inset(0 round 8px); opacity: 1; transform: none; } }
+@keyframes primer-source-scan { from { opacity: .14; transform: translateY(5px); filter: blur(.7px); } 72% { opacity: 1; transform: translateY(-1px); filter: none; } to { opacity: 1; transform: none; filter: none; } }
+@keyframes primer-source-dot { from { background: #c6c9c6; transform: scale(.8); box-shadow: 0 0 0 0 #c9a22700; } 62% { background: #c9a227; transform: scale(1.2); box-shadow: 0 0 0 3px #c9a22725; } to { background: #bf9a28; transform: none; box-shadow: 0 0 0 0 #c9a22700; } }
+@keyframes primer-count-settle { from { opacity: .15; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+@keyframes primer-soft-reveal { from { opacity: 0; transform: translateY(7px) scale(.975); clip-path: inset(80% 0 0 round 18px); } to { opacity: 1; transform: none; clip-path: inset(0 round 18px); } }
+@keyframes primer-fact-alert { 0%,100% { transform: translateX(0); } 20% { transform: translateX(3px); } 40% { transform: translateX(-3px); } 65% { transform: translateX(2px); } 80% { transform: translateX(-1px); } }
+@keyframes primer-risk-upgrade { from { color: #965c16; background: #fff3e1; } to { color: #ad3d35; background: #fcf0ee; } }
+@keyframes primer-risk-line { from { background: #c7a35e; } to { background: #ce938d; } }
+@keyframes primer-risk-surface { from { box-shadow: 0 10px 26px -14px #96681730; } to { box-shadow: 0 10px 26px -14px #ad3d3540,inset 0 0 0 1px #ad3d3518; } }
+@keyframes primer-number-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-9px) scale(.94); } }
+@keyframes primer-number-in { from { opacity: 0; transform: translateY(9px) scale(.94); } 62% { opacity: 1; transform: translateY(-1px) scale(1.18); text-shadow: 0 0 10px #c9a22755; } to { opacity: 1; transform: none; text-shadow: none; } }
+@keyframes primer-delta { 0% { opacity: 0; transform: translateY(5px) scale(.9); } 20%,75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-7px); } }
 @media (prefers-reduced-motion: reduce) {
-  .primer-panel *, .primer-confirm *, .primer-confirm,
-  .primer-action, .primer-action:hover, .primer-action:active {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-    filter: none !important;
+  .primer-panel *, .primer-panel *::before, .primer-panel *::after,
+  .primer-confirm, .primer-confirm *, .primer-confirm *::before, .primer-confirm *::after {
+    animation: none !important; transition: none !important; transform: none !important; filter: none !important;
   }
+  .primer-count-old, .primer-count-delta { display: none; }
 }
 
 /* 细滚动条，贴近桌面客户端观感 */
