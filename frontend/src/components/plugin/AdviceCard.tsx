@@ -112,7 +112,7 @@ function EvidenceList({ advice }: { advice: Advice }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1 px-3 py-2 text-body font-medium text-ink-2 hover:bg-canvas"
+        className="flex w-full items-center gap-1 px-3 py-2 text-xs font-medium text-ink-2 hover:bg-canvas"
       >
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         依据 · {命中源.length}/{六源.length} 源命中
@@ -127,11 +127,11 @@ function EvidenceList({ advice }: { advice: Advice }) {
               .filter((e) => e.用上)
               .map((e, i) => (
                 <div key={`${序号}-${i}`} className="mb-1.5">
-                  <p className="text-body text-ink">
+                  <p className="text-xs font-medium text-ink">
                     <span className="mr-1 text-ink-3">{序号}</span>
                     {e.出处}
                   </p>
-                  <p className="pl-4 text-note text-ink-3">{e.摘要}</p>
+                  <p className="pl-4 text-body leading-relaxed text-ink-3">{e.摘要}</p>
                 </div>
               )),
           )}
@@ -179,13 +179,13 @@ function EvidenceList({ advice }: { advice: Advice }) {
 function SentList({ 已代发 }: { 已代发: NonNullable<Advice['已代发']> }) {
   return (
     <div className="border-t border-ai-line bg-ai-soft px-3 py-2">
-      <p className="text-note font-medium text-ai-ink">已代发 · 以你的名义</p>
+      <p className="text-xs font-medium text-ai-ink">已代发 · 以你的名义</p>
 
       {已代发.map((条, i) => (
         // 内容当 key 的一部分：同一个会话里两条代发话术撞内容的情况没有，
         // 但下标不能当唯一依据（列表会随轮次整块换）。
         <div key={`${i}-${条.内容}`} className="mt-1.5">
-          <p className="rounded border border-line-soft bg-canvas px-2 py-2 text-body leading-relaxed text-ink">
+          <p className="rounded border border-line-soft bg-canvas px-2 py-2 text-xs leading-relaxed text-ink">
             {条.内容}
           </p>
           {/* 署名原样出，**不加前缀** —— 它自己就写着「Primer 自动发送」，
@@ -233,25 +233,25 @@ export default function AdviceCard({
   return (
     <section className={`rounded-md border bg-panel ${描边[advice.形态]}`}>
       <header className="flex items-center justify-between px-3 py-2">
-        <h2 className="text-xs font-medium text-ink">Primer 建议</h2>
+        <h2 className="text-base font-semibold text-ink">Primer 建议</h2>
       </header>
 
       <div className="px-3 pb-3">
-        <p className="inline-block rounded-full bg-canvas px-2 py-0.5 text-note text-ink-2">
+        <p className="ml-auto block w-fit rounded-full bg-canvas px-2.5 py-1 text-body font-medium text-ink-2">
           AI 判断：{advice.判断}
         </p>
 
         {/* 需要话术：给出成稿，客服看一眼点一下 */}
         {advice.形态 === '需要话术' ? (
           <div className="mt-2">
-            <p className="text-xs font-medium text-ink">{advice.标题}</p>
+            <p className="text-base font-semibold text-ink">{advice.标题}</p>
             {advice.说明.map((line) => (
-              <p key={line} className="mt-1 text-body leading-relaxed text-ink-2">
+              <p key={line} className="mt-1 text-xs leading-relaxed text-ink-2">
                 {line}
               </p>
             ))}
             {advice.话术 ? (
-              <p className="mt-2 rounded border border-line-soft bg-canvas px-2 py-2 text-body leading-relaxed text-ink">
+              <p className="mt-2 rounded border border-line-soft bg-canvas px-2 py-2 text-xs leading-relaxed text-ink">
                 {advice.话术}
               </p>
             ) : null}
@@ -274,9 +274,9 @@ export default function AdviceCard({
         {/* 需要授权：事该办但越过我的额度，报备后台审批，顾客无感 */}
         {advice.形态 === '需要授权' ? (
           <div className="mt-2">
-            <p className="text-xs font-medium text-hold-ink">{advice.标题}</p>
+            <p className="text-base font-semibold text-hold-ink">{advice.标题}</p>
             {advice.说明.map((line) => (
-              <p key={line} className="mt-1 text-body leading-relaxed text-ink-2">
+              <p key={line} className="mt-1 text-xs leading-relaxed text-ink-2">
                 {line}
               </p>
             ))}
@@ -341,16 +341,16 @@ export default function AdviceCard({
         {/* 有风险：H1–H4 命中，对话交出去 */}
         {advice.形态 === '有风险' ? (
           <div className="mt-2">
-            <p className="rounded border border-risk-line bg-risk-soft px-2 py-1.5 text-body font-medium text-risk-ink">
+            <p className="rounded border border-risk-line bg-risk-soft px-2 py-1.5 text-xs font-semibold text-risk-ink">
               {advice.风险标签}
             </p>
             {advice.说明.map((line) => (
-              <p key={line} className="mt-1 text-body leading-relaxed text-ink-2">
+              <p key={line} className="mt-1 text-xs leading-relaxed text-ink-2">
                 {line}
               </p>
             ))}
             {advice.话术建议 ? (
-              <p className="mt-1.5 text-body leading-relaxed text-ink-2">{advice.话术建议}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-2">{advice.话术建议}</p>
             ) : null}
 
             {转交 ? (

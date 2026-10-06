@@ -26,14 +26,14 @@ type Props = {
 export default function GuardBar({ hit, onReplace, onSendAnyway }: Props) {
   return (
     <div className="border-t border-hold-line bg-hold-soft px-3 py-2">
-      <p className="flex items-start gap-1.5 text-body font-medium text-hold-ink">
+      <p className="flex items-start gap-1.5 text-xs font-semibold text-hold-ink">
         <CornerDownLeft size={12} className="mt-0.5 shrink-0" />
         <span>
           发送前确认：命中禁语「{hit.禁语}」（口径表 {hit.口径}）
         </span>
       </p>
 
-      <p className="mt-1 pl-4.5 text-body leading-relaxed text-ink-2">
+      <p className="mt-1 pl-4.5 text-xs leading-relaxed text-ink-2">
         建议改为「{hit.建议}」
       </p>
 
@@ -41,14 +41,14 @@ export default function GuardBar({ hit, onReplace, onSendAnyway }: Props) {
         <button
           type="button"
           onClick={onReplace}
-          className="rounded border border-hold-line bg-panel px-2.5 py-1 text-body text-hold-ink hover:bg-hold-soft"
+          className="rounded border border-hold-line bg-panel px-2.5 py-1 text-xs font-medium text-hold-ink hover:bg-hold-soft"
         >
           一键替换
         </button>
         <button
           type="button"
           onClick={onSendAnyway}
-          className="rounded border border-line bg-panel px-2.5 py-1 text-body text-ink-2 hover:bg-canvas"
+          className="rounded border border-line bg-panel px-2.5 py-1 text-xs font-medium text-ink-2 hover:bg-canvas"
         >
           仍然发送
         </button>

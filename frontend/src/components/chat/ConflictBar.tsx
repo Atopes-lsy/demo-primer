@@ -32,12 +32,12 @@ type Props = {
 export default function ConflictBar({ 冲突, onReplace, onSendAnyway }: Props) {
   return (
     <div className="border-t border-risk-line bg-risk-soft px-3 py-2">
-      <p className="flex items-start gap-1.5 text-body font-medium text-risk-ink">
+      <p className="flex items-start gap-1.5 text-xs font-semibold text-risk-ink">
         <OctagonAlert size={12} className="mt-0.5 shrink-0" />
         <span>这句话和系统记录对不上</span>
       </p>
 
-      <div className="mt-1 space-y-0.5 pl-4.5 text-body leading-relaxed">
+      <div className="mt-1 space-y-0.5 pl-4.5 text-xs leading-relaxed">
         <p className="text-risk-ink-2">
           你说：「<span className="text-risk-ink">{冲突.你说}</span>」
         </p>
@@ -51,14 +51,14 @@ export default function ConflictBar({ 冲突, onReplace, onSendAnyway }: Props) 
         <button
           type="button"
           onClick={onReplace}
-          className="rounded border border-risk-line bg-panel px-2.5 py-1 text-body text-risk-ink hover:bg-risk-soft"
+          className="rounded border border-risk-line bg-panel px-2.5 py-1 text-xs font-medium text-risk-ink hover:bg-risk-soft"
         >
           一键替换
         </button>
         <button
           type="button"
           onClick={onSendAnyway}
-          className="rounded border border-line bg-panel px-2.5 py-1 text-body text-ink-2 hover:bg-canvas"
+          className="rounded border border-line bg-panel px-2.5 py-1 text-xs font-medium text-ink-2 hover:bg-canvas"
         >
           仍然发送
         </button>
