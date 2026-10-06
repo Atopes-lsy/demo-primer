@@ -9,6 +9,7 @@ import {
   agent,
   合会话列表,
   取会话列表,
+  UI验收模式,
   sessions as seedSessions,
   shopMetrics,
   先例库指标,
@@ -2127,7 +2128,12 @@ export default function App() {
     <div className="flex h-full w-full overflow-hidden">
       {/* 角标上的会话数就是这张表 —— 演示两条 ＋ 112 个真实窗口（114），见 `IconRail.会话数`。 */}
       <IconRail 会话数={sessions.length} />
-      <SessionPanel sessions={沉底的展示} activeId={activeId} onSelect={选会话} />
+      <SessionPanel
+        sessions={沉底的展示}
+        activeId={activeId}
+        onSelect={选会话}
+        默认分组={UI验收模式}
+      />
       <ChatPanel
         session={active}
         agent={agent}
@@ -2163,7 +2169,7 @@ export default function App() {
         /* 这条会话**没有剧本可回落**：它有没有建议，全看接口答没答上来。见
            `PrimerPanel.未判定` —— 2026-10-04 起真窗口也判了，这个 prop 的意思从
            「判定没接它」变成「它没有兜底那份」。 */
-        未判定={!剧本}
+        未判定={UI验收模式 ? false : !剧本}
         /* 这一条会话的判定正飞着（见 `判定中`）。和 `未判定`、`已判定` 一起决定
            那句空态说哪一句 —— 三句都只说各自知道的事。 */
         判定中={Boolean(判定中[activeId])}
@@ -2181,7 +2187,7 @@ export default function App() {
            那个函数随「按轮问」一起拆了）。演示线用不着它 —— `未判定` 是假的，
            这一态只在真窗口上起作用（`PrimerPanel` 那一支的判据是
            `未判定 && !已判定`）。 */
-        已判定={当前真轮次 > 0 && Boolean(可用真答(当前真轮次))}
+        已判定={UI验收模式 || (当前真轮次 > 0 && Boolean(可用真答(当前真轮次)))}
         /* 还没演到要判的地方 —— **开屏就是这一格**。右栏的内容全由进度推出来，
            格 0 一分一毫都还没生成；不传这个，右栏会拿「本轮无需客服动作 /
            AI 可自行答复」顶上去，而那一格压根没判过。见 `PrimerPanel.未开演`。
@@ -2195,7 +2201,7 @@ export default function App() {
                见 `当前真轮次`）。
            挡住的是同一件错事：**一次判定都还没打出去**，而下面那句空态写的是
            「正在判这条会话…」。没有一件在飞，那句话是假的。 */
-        未开演={剧本 ? 播放.已播格数 === 0 : 当前真轮次 === 0}
+        未开演={UI验收模式 ? false : 剧本 ? 播放.已播格数 === 0 : 当前真轮次 === 0}
       />
     </div>
   )
