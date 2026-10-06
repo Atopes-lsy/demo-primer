@@ -42,7 +42,8 @@ export default function SessionPanel({ sessions, activeId, onSelect }: Props) {
    *     的置顶在分组模式下完全不起作用。
    *
    * 关掉之后数组顺序说了算：小鹿、阿沅，之后 112 个真实窗口按最近时间倒序，
-   * 最后 29 条垫底（绝大多数是顾客把同一件事说了两遍的，见 `data/重复会话.ts`）。
+   * 最后 30 条垫底（绝大多数是顾客把同一件事说了两遍的，见 `data/重复会话.ts`；
+   * 那里面另有两条判据不是这一条，文件尾巴上各自写着为什么）。
    * 开关留在屏幕上，要看分组随时能打开。
    */
   const [grouped, setGrouped] = useState(false)
