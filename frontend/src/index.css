@@ -188,6 +188,18 @@
 .primer-evidence-row .bg-hold { background: #bf9a28; }
 .primer-evidence-row .text-hold-ink { color: #806717; }
 .primer-evidence-row .text-ink-4 { color: #878d8a; }
+.primer-evidence { display: flex; flex-direction: column; }
+.primer-evidence > button { flex: 0 0 44px; }
+.primer-evidence > div { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.primer-evidence-detail > summary { list-style: none; }
+.primer-evidence-detail > summary::-webkit-details-marker { display: none; }
+.primer-evidence-detail[open] .primer-source-chevron { transform: rotate(90deg); }
+.primer-source-detail { padding: 8px 10px; background: #f6f7f5; border-radius: 10px; }
+.primer-evidence-detail:nth-child(2) .primer-evidence-row { animation-delay: 15ms; }
+.primer-evidence-detail:nth-child(3) .primer-evidence-row { animation-delay: 30ms; }
+.primer-evidence-detail:nth-child(4) .primer-evidence-row { animation-delay: 45ms; }
+.primer-evidence-detail:nth-child(5) .primer-evidence-row { animation-delay: 60ms; }
+.primer-evidence-detail:nth-child(6) .primer-evidence-row { animation-delay: 75ms; }
 
 /* 发送前提示脱离文档流：两种强度共用下沿，不推挤千牛输入框。 */
 .primer-composer-host { position: relative; flex-basis: 190px; height: 190px; min-height: 190px; }
