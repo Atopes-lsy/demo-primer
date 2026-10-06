@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:ui-review": "vite --mode ui-review",
     "build": "tsc -b && vite build",
+    "build:ui-review": "tsc -b && vite build --mode ui-review",
     "lint": "oxlint",
     "preview": "vite preview"
   },

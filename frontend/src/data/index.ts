@@ -19,6 +19,13 @@
 import type { Agent, Session, ShopMetric } from '../types'
 import { 重复会话 } from './重复会话'
 import { 线一会话, 线二会话 } from './剧本'
+import { 五客户验收会话 } from './五客户验收'
+
+/**
+ * UI 验收模式只换固定演示数据，不改真实后端模式。
+ * 启动方式：`pnpm dev:ui-review`。
+ */
+export const UI验收模式 = import.meta.env.VITE_UI_REVIEW_MODE === 'five'
 
 export const agent: Agent = {
   昵称: '测试客服',
@@ -58,7 +65,7 @@ export function 先例库指标(条数: number): ShopMetric {
  *
  * 顺序同时服务 S12 的转折：线一演完，列表向右推一屏要露出的是线二，挨着放才对得上。
  */
-export const sessions: Session[] = [线一会话, 线二会话]
+export const sessions: Session[] = UI验收模式 ? 五客户验收会话 : [线一会话, 线二会话]
 
 /**
  * `GET /api/会话列表` 的前端入口。
@@ -91,6 +98,7 @@ export const sessions: Session[] = [线一会话, 线二会话]
  * 超时也还是下面那 10 秒。
  */
 export async function 取会话列表(): Promise<Session[] | null> {
+  if (UI验收模式) return 五客户验收会话
   try {
     const 答 = await fetch('/api/会话列表', { signal: AbortSignal.timeout(10_000) })
     if (!答.ok) return null
@@ -133,6 +141,7 @@ export async function 取会话列表(): Promise<Session[] | null> {
  * 两条线一条不少。
  */
 export function 合会话列表(接口的: Session[]): Session[] {
+  if (UI验收模式) return 五客户验收会话
   const 演示两条 = [线一会话, 线二会话]
   const 演示的ID = new Set(演示两条.map((s) => s.会话ID))
   const 其余 = 接口的
