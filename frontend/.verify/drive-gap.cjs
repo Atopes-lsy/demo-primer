@@ -244,8 +244,26 @@ var \u91CD\u590D\u4F1A\u8BDD = /* @__PURE__ */ new Set([
   "S00132",
   // 同模板
   // 退款没到账，问两遍 → 客服两遍都在「帮您追」
-  "S00032"
+  "S00032",
   // '退款到底去哪了，别踢皮球让我找银行' ／ '到底啥时候到呀'
+  // ══════════════════════════════════════════════════════════
+  // 下面这一条**不是**「同一件事说了两遍」，判据不是上面那一条
+  // ══════════════════════════════════════════════════════════
+  //
+  // 2026-10-06 用户拍板挪的，原话：「把郭a\*\*放在最下面」。
+  //
+  // `S00381` 郭a\*\* 和 `S00362` 姚b\*\* 是**同一套模板换个人名**：末段那三句
+  // 一字不差（「我的退货你们仓库都签收了，但售后单关闭了钱退不…」／
+  // 「发你了，谢谢谢谢」／「好的好的，谢谢你，帮大忙了」），前半段各自是
+  // 运费报销和赠品补发。用户当天报的正是这件事：
+  //
+  //   > 郭\*\*和姚\*\*客户发了一样的话，检查结果却不一样解决该问题
+  //
+  // **两条长得一样的窗口并排露在镜头前，读起来就像同一条放了两遍。**
+  // 挪的是**前一条**（郭a\*\* 本来在第 1 位、姚b\*\* 在第 3 位），
+  // 两边不是重复会话档案，所以单列在这儿、不并进上面那张表 ——
+  // 将来重审上面那张表时，别拿这一条当判据。
+  "S00381"
 ]);
 
 // src/data/msg.ts
@@ -1740,6 +1758,8 @@ function App() {
         continue;
       } else if (\u8F6E === \u5F53\u524D\u771F\u8F6E\u6B21 && \u5224\u5B9A\u4E2D[activeId]) {
         continue;
+      } else if (!\u5224\u6CA1\u8FC7[activeId]?.[\u8F6E]) {
+        continue;
       }
       if (\u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u8F6E] !== void 0) continue;
       const \u539F\u8BDD = \u6D88\u606F\u4EEC.filter((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u5BA2\u670D");
@@ -1760,7 +1780,8 @@ function App() {
     \u5F52\u5C5E,
     \u73B0\u573A\u8F6C\u4EA4\u8F6E,
     \u73B0\u573A\u5BA2\u670D\u8BDD,
-    \u5224\u5B9A\u4E2D
+    \u5224\u5B9A\u4E2D,
+    \u5224\u6CA1\u8FC7
   ]);
   const \u76F4\u53D1\u8F6E = (0, import_react2.useMemo)(
     () => new Set(
@@ -1935,12 +1956,12 @@ function App() {
   if (\u5217\u8868\u672A\u8FDE) \u515C\u5E95.push("\u4F1A\u8BDD\u5217\u8868");
   if (\u52A8\u4F5C\u515C\u5E95[activeId]) \u515C\u5E95.push("\u52A8\u4F5C");
   const \u9009\u4F1A\u8BDD = (id) => {
-    const \u76EE\u68074 = sessions2.find((s) => s.\u4F1A\u8BDDID === id);
+    const \u76EE\u68075 = sessions2.find((s) => s.\u4F1A\u8BDDID === id);
     const \u672C = \u5267\u672C\u8868[id];
     setActiveId(id);
     \u64AD\u653E.\u8DF3\u5230(
-      \u672C ? 0 : \u76EE\u68074?.\u8D77\u6F14\u683C ?? 0,
-      \u672C ? \u672C.\u4E8B\u4EF6.length : \u76EE\u68074?.\u6D88\u606F.length ?? 0
+      \u672C ? 0 : \u76EE\u68075?.\u8D77\u6F14\u683C ?? 0,
+      \u672C ? \u672C.\u4E8B\u4EF6.length : \u76EE\u68075?.\u6D88\u606F.length ?? 0
     );
   };
   const \u843D\u4E00\u7B14 = (\u4F1A\u8BDDID, fn) => {
@@ -2208,6 +2229,9 @@ var \u76EE\u68072 = \u7A97\u53E3\u4EEC.find((w) => w.\u4F1A\u8BDDID === "S00002"
 if (!\u76EE\u68072) throw new Error("\u5217\u8868\u91CC\u6CA1\u6709 S00002");
 var \u76EE\u68073 = \u7A97\u53E3\u4EEC.find((w) => w.\u4F1A\u8BDDID === "S00226");
 if (!\u76EE\u68073) throw new Error("\u5217\u8868\u91CC\u6CA1\u6709 S00226");
+var \u76EE\u68074 = \u7A97\u53E3\u4EEC.find((w) => w.\u4F1A\u8BDDID === "S00381");
+if (!\u76EE\u68074) throw new Error("\u5217\u8868\u91CC\u6CA1\u6709 S00381");
+var \u8D77\u6F14\u683C4 = \u76EE\u68074.\u8D77\u6F14\u683C ?? 0;
 var \u53611 = \u8BFB("\u52243.json");
 var \u6B8B\u53E5 = \u76EE\u6807.\u6D88\u606F[2].message_text;
 var \u53D1\u8FC7\u7684 = [];
@@ -2359,6 +2383,50 @@ async function \u4E3B() {
   \u65AD\u8A00(
     \u8F6E2\u7684\u540C\u8BED.length === 1,
     `\u8F6E 2 \u90A3\u4E09\u6761\u4E00\u5B57\u4E0D\u5DEE\u7684\u4E3B\u5F20\u53EA\u53D1\u51FA\u4E00\u6761\u7EFF\u6C14\u6CE1\uFF08\u5B9E\u9645 ${\u8F6E2\u7684\u540C\u8BED.length} \u6761\uFF09`
+  );
+  console.log("");
+  \u5224\u5B9A\u7B54\u5F97\u4E0A = false;
+  \u6284\u4E0B\u7684.ChatPanel.\u64AD\u653E.\u6682\u505C();
+  \u6284\u4E0B\u7684.SessionPanel.onSelect("S00381");
+  await \u7A33(150);
+  const \u524D\u6BB5\u5BA2\u670D = \u76EE\u68074.\u6D88\u606F.slice(0, \u8D77\u6F14\u683C4).filter((m) => m.\u89D2\u8272 === "\u5BA2\u670D").map((m) => m.message_text);
+  const \u672C\u6B21\u5BA2\u670D = \u76EE\u68074.\u6D88\u606F.slice(\u8D77\u6F14\u683C4).filter((m) => m.\u89D2\u8272 === "\u5BA2\u670D").map((m) => m.message_text);
+  \u65AD\u8A00(
+    \u8D77\u6F14\u683C4 > 0 && \u524D\u6BB5\u5BA2\u670D.length > 0 && \u672C\u6B21\u5BA2\u670D.length > 0,
+    `S00381 \u662F\u5408\u5E76\u7A97\u53E3\uFF08\u8D77\u6F14\u683C ${\u8D77\u6F14\u683C4}\uFF1A\u524D\u6BB5 ${\u8D77\u6F14\u683C4} \u6761\uFF0F\u672C\u6B21 ${\u76EE\u68074.\u6D88\u606F.length - \u8D77\u6F14\u683C4} \u6761\uFF0C\u5BA2\u670D\u8BDD\u524D\u6BB5 ${\u524D\u6BB5\u5BA2\u670D.length} \u53E5\u3001\u672C\u6B21 ${\u672C\u6B21\u5BA2\u670D.length} \u53E5\uFF09`
+  );
+  \u6284\u4E0B\u7684.ChatPanel.\u64AD\u653E.\u8BBE\u683C\u95F4\u9694(120);
+  \u6284\u4E0B\u7684.ChatPanel.\u64AD\u653E.\u64AD\u653E();
+  const \u7EC84 = await \u7B49\u5230((k) => k.\u683C >= k.\u5171);
+  \u62A5("\u5408\u5E76\u7A97\u53E3\uFF0C\u5224\u5B9A\u5168\u706D\uFF0C\u6F14\u5230\u5934");
+  \u65AD\u8A00(!\u7EC84.\u8D85\u65F6 && \u7EC84.\u683C === \u76EE\u68074.\u6D88\u606F.length, `S00381 \u4E00\u8DEF\u6F14\u5230\u5934\uFF08\u5B9E\u9645 ${\u7EC84.\u683C}/${\u7EC84.\u5171}\uFF09`);
+  console.log(`   \u5C4F\u4E0A\u9010\u6761\uFF08\u7B2C\u56DB\u5E55\uFF0C\u524D\u6BB5 ${\u8D77\u6F14\u683C4} \u6761 / \u672C\u6B21 ${\u76EE\u68074.\u6D88\u606F.length - \u8D77\u6F14\u683C4} \u6761\uFF09\uFF1A`);
+  \u7EC84.\u6D88\u606F.forEach(
+    (m, i) => console.log(
+      `     [${String(i).padStart(2)}] ${i < \u8D77\u6F14\u683C4 ? "\u524D\u6BB5" : "\u672C\u6B21"} ${m.\u89D2\u8272}  \u7F72\u540D=${m.\u7F72\u540D ? `\u300C${m.\u7F72\u540D}\u300D` : "\u2014\u2014"}  ${String(m.message_text).slice(0, 30)}`
+    )
+  );
+  const \u524D\u6BB5\u88AB\u7EFF\u7684 = \u524D\u6BB5\u5BA2\u670D.filter(
+    (t) => \u7EC84.\u4EE3\u53D1\u8BDD.some((m) => m.message_text === t)
+  );
+  \u65AD\u8A00(
+    \u524D\u6BB5\u88AB\u7EFF\u7684.length === 0,
+    `**\u4E0A\u4E00\u6B21\u6765\u8BBF**\u90A3 ${\u524D\u6BB5\u5BA2\u670D.length} \u53E5\u5BA2\u670D\u8BDD\u4E00\u53E5\u90FD\u6CA1\u88AB\u5305\u6210\u7EFF\u6C14\u6CE1\uFF08\u5B9E\u9645\u7EFF\u4E86 ${\u524D\u6BB5\u88AB\u7EFF\u7684.length} \u53E5\uFF09\uFF1A\u5224\u5B9A\u538B\u6839\u6CA1\u95EE\u8FC7\u90A3\u51E0\u8F6E\uFF0C` + (\u524D\u6BB5\u88AB\u7EFF\u7684.length ? `\u7B2C\u4E00\u53E5\u662F\u300C${String(\u524D\u6BB5\u88AB\u7EFF\u7684[0]).slice(0, 20)}\u2026\u300D` : "")
+  );
+  \u65AD\u8A00(
+    \u524D\u6BB5\u5BA2\u670D.every((t) => \u7EC84.\u5BA2\u670D\u8BDD.some((m) => m.message_text === t)),
+    `\u524D\u6BB5\u90A3 ${\u524D\u6BB5\u5BA2\u670D.length} \u53E5**\u539F\u6837\u84DD\u8272**\u7559\u5728\u5C4F\u4E0A\uFF08\u4E00\u53E5\u4E0D\u5C11\u3001\u6CA1\u88AB\u6362\u6389\uFF09`
+  );
+  const \u672C\u6B21\u88AB\u7EFF\u7684 = \u672C\u6B21\u5BA2\u670D.filter(
+    (t) => \u7EC84.\u4EE3\u53D1\u8BDD.some((m) => m.message_text === t)
+  );
+  \u65AD\u8A00(
+    \u672C\u6B21\u88AB\u7EFF\u7684.length === \u672C\u6B21\u5BA2\u670D.length && \u672C\u6B21\u5BA2\u670D.length > 0,
+    `**\u672C\u6B21\u6765\u8BBF**\u90A3 ${\u672C\u6B21\u5BA2\u670D.length} \u53E5\u5BA2\u670D\u8BDD\u5168\u88AB\u5305\u6210\u7EFF\u6C14\u6CE1\uFF08\u5B9E\u9645 ${\u672C\u6B21\u88AB\u7EFF\u7684.length} \u53E5\uFF09`
+  );
+  \u65AD\u8A00(
+    \u7EC84.\u4EE3\u53D1\u8BDD.every((m) => Boolean(m.\u7F72\u540D)),
+    `\u6BCF\u4E00\u6761\u7EFF\u6C14\u6CE1\u90FD\u5E26\u7740\u7F72\u540D\uFF08\u5B9E\u9645 ${JSON.stringify(\u7EC84.\u4EE3\u53D1\u8BDD.map((m) => m.\u7F72\u540D))}\uFF09`
   );
   console.log(`
 ${\u5931\u8D25 === 0 ? "\u5168\u7EFF" : `\u7EA2\u4E86 ${\u5931\u8D25} \u6761`}`);
