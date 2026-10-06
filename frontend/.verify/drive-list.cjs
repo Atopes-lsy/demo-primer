@@ -244,8 +244,26 @@ var \u91CD\u590D\u4F1A\u8BDD = /* @__PURE__ */ new Set([
   "S00132",
   // 同模板
   // 退款没到账，问两遍 → 客服两遍都在「帮您追」
-  "S00032"
+  "S00032",
   // '退款到底去哪了，别踢皮球让我找银行' ／ '到底啥时候到呀'
+  // ══════════════════════════════════════════════════════════
+  // 下面这一条**不是**「同一件事说了两遍」，判据不是上面那一条
+  // ══════════════════════════════════════════════════════════
+  //
+  // 2026-10-06 用户拍板挪的，原话：「把郭a\*\*放在最下面」。
+  //
+  // `S00381` 郭a\*\* 和 `S00362` 姚b\*\* 是**同一套模板换个人名**：末段那三句
+  // 一字不差（「我的退货你们仓库都签收了，但售后单关闭了钱退不…」／
+  // 「发你了，谢谢谢谢」／「好的好的，谢谢你，帮大忙了」），前半段各自是
+  // 运费报销和赠品补发。用户当天报的正是这件事：
+  //
+  //   > 郭\*\*和姚\*\*客户发了一样的话，检查结果却不一样解决该问题
+  //
+  // **两条长得一样的窗口并排露在镜头前，读起来就像同一条放了两遍。**
+  // 挪的是**前一条**（郭a\*\* 本来在第 1 位、姚b\*\* 在第 3 位），
+  // 两边不是重复会话档案，所以单列在这儿、不并进上面那张表 ——
+  // 将来重审上面那张表时，别拿这一条当判据。
+  "S00381"
 ]);
 
 // src/data/msg.ts
@@ -1740,6 +1758,8 @@ function App() {
         continue;
       } else if (\u8F6E === \u5F53\u524D\u771F\u8F6E\u6B21 && \u5224\u5B9A\u4E2D[activeId]) {
         continue;
+      } else if (!\u5224\u6CA1\u8FC7[activeId]?.[\u8F6E]) {
+        continue;
       }
       if (\u73B0\u573A\u5BA2\u670D\u8BDD[activeId]?.[\u8F6E] !== void 0) continue;
       const \u539F\u8BDD = \u6D88\u606F\u4EEC.filter((m, i) => \u5F52\u5C5E[i] === \u8F6E && m.\u89D2\u8272 === "\u5BA2\u670D");
@@ -1760,7 +1780,8 @@ function App() {
     \u5F52\u5C5E,
     \u73B0\u573A\u8F6C\u4EA4\u8F6E,
     \u73B0\u573A\u5BA2\u670D\u8BDD,
-    \u5224\u5B9A\u4E2D
+    \u5224\u5B9A\u4E2D,
+    \u5224\u6CA1\u8FC7
   ]);
   const \u76F4\u53D1\u8F6E = (0, import_react2.useMemo)(
     () => new Set(
@@ -2184,6 +2205,7 @@ async function \u770B\u5230\u5217\u8868() {
 }
 var \u57AB\u5E95 = [
   "S00474",
+  "S00381",
   "S00303",
   "S00285",
   "S00232",
@@ -2230,24 +2252,24 @@ async function \u4E3B() {
     `A \u5728 B \u524D\uFF08\u5B9E\u9645 ${\u7F16\u53F7[0]} / ${\u7F16\u53F7[1]}\uFF09`
   );
   const \u524D\u5341\u6761 = \u771F.slice(0, 10);
-  const \u5E94\u662F = ["S00381", "S00364", "S00362", "S00336", "S00322", "S00277", "S00268", "S00226", "S00223", "S00203"];
+  const \u5E94\u662F = ["S00364", "S00362", "S00336", "S00322", "S00277", "S00268", "S00226", "S00223", "S00203", "S00200"];
   console.log("\n\u2461 \u771F\u5BF9\u8BDD\u524D\u5341\u6761\uFF08\u5E72\u51C0\u7684\u90A3\u7247\u5934\uFF09");
   \u65AD\u8A00(\u524D\u5341\u6761.join(",") === \u5E94\u662F.join(","), `\u5B9E\u9645 ${\u524D\u5341\u6761.join(", ")}`);
-  console.log("\n\u2462 \u987E\u5BA2\u8BF4\u4E86\u4E24\u904D\u7684\u90A3 28 \u6761");
-  const \u5C3E\u5DF4 = \u771F.slice(-28);
+  console.log("\n\u2462 \u57AB\u5E95\u7684\u90A3 29 \u6761");
+  const \u5C3E\u5DF4 = \u771F.slice(-29);
   const \u96C6\u5408\u4E00\u81F4 = \u5C3E\u5DF4.length === \u57AB\u5E95.length && \u5C3E\u5DF4.map((i) => i).sort().join(",") === \u57AB\u5E95.join(",");
   \u65AD\u8A00(
     \u96C6\u5408\u4E00\u81F4,
-    `\u672B\u5C3E 28 \u6761\u6B63\u662F\u90A3 28 \u6761\uFF08\u5B9E\u9645 ${\u5C3E\u5DF4.slice(0, 4).join(", ")} \u2026 ${\u5C3E\u5DF4.slice(-2).join(", ")}\uFF09`
+    `\u672B\u5C3E 29 \u6761\u6B63\u662F\u90A3 29 \u6761\uFF08\u5B9E\u9645 ${\u5C3E\u5DF4.slice(0, 4).join(", ")} \u2026 ${\u5C3E\u5DF4.slice(-2).join(", ")}\uFF09`
   );
   const \u65F6\u95F4 = \u5C3E\u5DF4.map((i) => \u5217\u8868.find((s) => s.\u4F1A\u8BDDID === i)?.\u6700\u8FD1\u65F6\u95F4 ?? "");
   const \u5012\u5E8F = \u65F6\u95F4.every((t, k) => k === 0 || \u65F6\u95F4[k - 1] >= t);
   \u65AD\u8A00(\u5012\u5E8F, `\u5C3E\u5DF4\u5185\u90E8\u4ECD\u662F\u6700\u8FD1\u65F6\u95F4\u5012\u5E8F\uFF08\u9996 ${\u65F6\u95F4[0]} \u2192 \u672B ${\u65F6\u95F4.at(-1)}\uFF09`);
-  const \u5E72\u51C0 = \u771F.slice(0, -28);
+  const \u5E72\u51C0 = \u771F.slice(0, -29);
   const \u51C0\u65F6\u95F4 = \u5E72\u51C0.map((i) => \u5217\u8868.find((s) => s.\u4F1A\u8BDDID === i)?.\u6700\u8FD1\u65F6\u95F4 ?? "");
   \u65AD\u8A00(
     \u51C0\u65F6\u95F4.every((t, k) => k === 0 || \u51C0\u65F6\u95F4[k - 1] >= t),
-    `\u524D 84 \u6761\u4ECD\u662F\u6700\u8FD1\u65F6\u95F4\u5012\u5E8F\uFF08\u9996 ${\u51C0\u65F6\u95F4[0]} \u2192 \u672B ${\u51C0\u65F6\u95F4.at(-1)}\uFF09`
+    `\u524D 83 \u6761\u4ECD\u662F\u6700\u8FD1\u65F6\u95F4\u5012\u5E8F\uFF08\u9996 ${\u51C0\u65F6\u95F4[0]} \u2192 \u672B ${\u51C0\u65F6\u95F4.at(-1)}\uFF09`
   );
   console.log(`
 ${\u5931\u8D25 === 0 ? "\u5168\u8FC7" : `\u6709 ${\u5931\u8D25} \u6761\u6CA1\u8FC7`}`);
