@@ -87,7 +87,7 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
   const 可见 = expanded ? rows : [...rows.slice(0, 默认展开), ...后段.filter(必须可见)]
 
   return (
-    <section className="primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
+    <section className="primer-customer primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-base font-semibold text-ink">顾客情况</h2>
         <span className="text-body text-ink-3">每条消息都重读</span>
@@ -101,9 +101,9 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
         <>
           {/* 更早的来访**不在这儿露脸**（2026-10-04 拍的）—— 它们只用来填底下
               这五行，`以前` 除了判「初次会话」什么都不干，见 `Props.以前`。 */}
-          <div className="border-t border-line-soft">
+          <div className="primer-customer-facts border-t border-line-soft">
             {可见.map((row) => (
-              <div key={row.标签} className="border-b border-line-soft px-3 py-2 last:border-b-0">
+              <div key={row.标签} className="primer-fact border-b border-line-soft px-3 py-2 last:border-b-0">
                 <p className="text-body font-medium text-ink-3">{row.标签}</p>
                 {/* **值只占一行**（2026-10-04）。原来它是随便折行的，而「这次要什么」
                     在这一改里换成了模型拆出来的短需求（` ＋ ` 连起来），那条规矩的

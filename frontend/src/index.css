@@ -118,6 +118,75 @@
   }
 }
 
+/* C 版浮岛材质。仅作用于 Primer，不改千牛字号、导航、消息气泡或指标条。 */
+.primer-panel {
+  min-height: 0;
+  background: #f3f5f4;
+  --primer-title: 15px;
+  --primer-body: 13px;
+  --primer-caption: 12px;
+}
+
+.primer-slots {
+  display: grid;
+  grid-template-rows: 196px minmax(320px, 1fr) 250px;
+  gap: 12px;
+  min-height: 0;
+  align-content: stretch;
+}
+
+.primer-slots > * { min-width: 0; margin: 0; }
+.primer-customer { grid-row: 1; }
+.primer-advice, .primer-advice-empty { grid-row: 2; }
+.primer-evidence { grid-row: 3; }
+.primer-slots > section, .primer-advice-empty {
+  border-radius: 20px;
+  border-color: rgba(255,255,255,.94);
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 12px 28px -14px rgba(43,50,48,.18), 0 2px 6px rgba(43,50,48,.025);
+}
+.primer-panel .text-base { font-size: var(--primer-title); line-height: 1.45; }
+.primer-panel .text-xs { font-size: var(--primer-body); line-height: 1.55; }
+.primer-panel .text-body, .primer-panel .text-note {
+  font-size: var(--primer-caption); line-height: 1.5;
+}
+.primer-panel .text-ink-3 { color: #747a79; }
+.primer-panel .text-ink-4 { color: #818886; }
+.primer-panel h2 { letter-spacing: -.015em; font-weight: 600; }
+.primer-panel section > header { min-height: 40px; padding: 10px 14px 7px; }
+.primer-customer { overflow-y: auto; scrollbar-width: thin; }
+.primer-customer-facts {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 8px;
+  margin: 0 12px 8px;
+  border: 0;
+}
+.primer-fact { min-width: 0; padding: 8px 10px; border: 0; border-radius: 12px; background: #f5f6f4; }
+.primer-fact:nth-child(n+3) { grid-column: 1 / -1; padding: 4px 8px; background: transparent; }
+.primer-fact > p:first-child { color: #757b78; font-size: 12px; font-weight: 400; }
+.primer-fact > p:nth-child(2) { font-size: 13px; font-weight: 500; }
+.primer-fact .text-danger { width: fit-content; margin-left: auto; padding: 2px 8px; border-radius: 8px; color: #a1322b; background: #fcf0ee; text-align: center; }
+.primer-customer > button { min-height: 28px; border-top: 0; padding: 4px 12px; }
+.primer-advice { display: flex; flex-direction: column; min-height: 0; }
+.primer-advice-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 0 14px 12px; }
+.primer-judgement { max-width: 100%; padding: 5px 10px; text-align: center; font-weight: 500; }
+.primer-advice-body > div > p:first-child { font-size: 14px; line-height: 1.5; font-weight: 600; }
+.primer-advice-body > div > p { overflow-wrap: anywhere; }
+.primer-advice-body > div > .primer-action { min-height: 40px; margin-top: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+.primer-advice-body .bg-brand { background: #2f3834; }
+.primer-advice-body .bg-hold { background: #965c16; }
+.primer-advice-body .bg-danger { background: #ae3d36; }
+.primer-advice-body .bg-risk-soft { border-color: transparent; border-radius: 12px; }
+.primer-advice > .border-t { flex: 0 1 auto; max-height: 108px; overflow-y: auto; scrollbar-width: thin; }
+.primer-evidence > button { min-height: 44px; padding: 10px 14px; }
+.primer-evidence > div { border: 0; padding: 0 14px 10px; }
+.primer-evidence-row { height: 31px; min-height: 31px; gap: 8px; }
+.primer-evidence-row .truncate { font-size: 12px; font-weight: 400; }
+.primer-evidence-row .bg-hold { background: #bf9a28; }
+.primer-evidence-row .text-hold-ink { color: #806717; }
+.primer-evidence-row .text-ink-4 { color: #878d8a; }
+
 /* Primer 自有区域的入场与按压反馈；千牛原生区域不引用这些类。 */
 @keyframes primer-surface-in {
   from {

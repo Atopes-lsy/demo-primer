@@ -107,7 +107,7 @@ function EvidenceList({ advice }: { advice: Advice }) {
   const 命中源 = 六源.filter((序号) => 按源.get(序号)?.some((e) => e.用上))
 
   return (
-    <section className="primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
+    <section className="primer-evidence primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -131,7 +131,7 @@ function EvidenceList({ advice }: { advice: Advice }) {
               <div
                 key={序号}
                 title={说明 || `${EVIDENCE_SOURCE[序号]}：无记录`}
-                className="flex min-h-8 items-center gap-2 border-b border-line-soft last:border-b-0"
+                className="primer-evidence-row flex min-h-8 items-center gap-2 border-b border-line-soft last:border-b-0"
               >
                 <span className={`size-2 shrink-0 rounded-full ${命中 ? 'bg-hold' : 'bg-line'}`} />
                 <span className={`min-w-0 flex-1 truncate text-xs ${命中 ? 'font-medium text-ink-2' : 'text-ink-4'}`}>
@@ -226,14 +226,14 @@ export default function AdviceCard({
   return (
     <>
       <section
-        className={`primer-surface-in overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
+        className={`primer-advice primer-surface-in overflow-hidden rounded-[20px] border bg-panel/95 shadow-[0_10px_28px_-14px_rgba(46,51,56,0.24)] backdrop-blur-xl ${描边[advice.形态]}`}
       >
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-base font-semibold text-ink">Primer 建议</h2>
       </header>
 
-      <div className="px-3 pb-3">
-        <p className="ml-auto block w-fit rounded-full bg-canvas/80 px-3 py-1.5 text-body font-medium text-ink-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-white/80">
+      <div className="primer-advice-body px-3 pb-3">
+        <p className="primer-judgement ml-auto block w-fit rounded-full bg-canvas/80 px-3 py-1.5 text-body font-medium text-ink-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ring-1 ring-white/80">
           AI 判断：{advice.判断}
         </p>
 
