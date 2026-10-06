@@ -29,7 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .api import deps, 判定, 动作, 需求分解, 路由
+from .api import deps, 判定, 动作, 留痕, 需求分解, 路由
 from .配置 import 取配置
 
 日志 = logging.getLogger(__name__)
@@ -49,6 +49,13 @@ def 启动装配() -> None:
         len(存档.会话列表),
         配置.业务数据路径,
     )
+    # 留痕的模型调用钩子。**接线放这儿，不做模块级副作用** ——
+    # 模块级的话，`llm/客户端` 会在 import 期间就和 `api/` 缠上，
+    # 而「`llm/` 不许反向 import `api/`」是模型线与接口线之间的那堵墙。
+    #
+    # 测试走 `ASGITransport` 不触发 lifespan ⇒ 测试里钩子一直是 `None`，
+    # 单测不会顺手去打真模型。要测记录的那几条自己接（`留痕.接模型钩子`）。
+    留痕.接模型钩子()
 
 
 @asynccontextmanager
@@ -120,4 +127,5 @@ app = FastAPI(
 app.include_router(路由.router)
 app.include_router(判定.router)
 app.include_router(动作.router)
+app.include_router(留痕.router)
 app.include_router(需求分解.router)

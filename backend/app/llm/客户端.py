@@ -50,12 +50,28 @@ Windows 的 `cmd.exe` 在非 UTF-8 代码页下不好设** —— 演示用的 G
 `问模型` / `问JSON` 是**唯一**碰网络的地方。`认口径` 和 `拆主张` 把它们的
 引用当参数收（`问=`），所以测试里那条路整条走不到。这个分法和
 `rules/triggers.H2情绪` 的 `认不信任函数` 是同一条：**签名留着，换实现不动调用方。**
+
+调用记录（`记录钩子`）
+======================
+
+留痕（步骤 6）要存「模型调用的原始 prompt 和返回」。`记录钩子` 就是那个口子：
+**不设时是 `None`，`_问` 的行为逐字不变**（多出来的只有四行收尾）。
+
+⚠️ **这里只承诺「一次完整调用记下来了」，不承诺「可重放」。** 同一个提示问两次
+可以给两个答案，`temperature=0` 也不是确定性保证（见 `_问` 里的实测记录）。
+可重放的范围到 `rules.pipeline.切轮` 为止，别把这两件事说成一件事。
+
+⚠️ **`llm/` 不许反向 import `api/`。** 所以这里只留一个 `Callable` 口子，
+「收下来存进留痕」是装配层接线的事（`api/留痕.接模型钩子`）。
 """
 
 from __future__ import annotations
 
+import logging
 import os
 from collections.abc import Callable, Sequence
+from contextvars import ContextVar
+from dataclasses import dataclass
 from functools import lru_cache
 
 from openai import OpenAI
@@ -100,6 +116,62 @@ from openai import OpenAI
 #: 定义成两参数是为了让 `问模型` 和 `问JSON` 共用一个口子 ——
 #: 假模型写一个两参数函数就能同时顶替两个，不用管 JSON 模式那些细节。
 问答函数 = Callable[[str, str], str]
+
+
+@dataclass(frozen=True, slots=True)
+class 模型调用:
+    """一次真实调用的完整记录。**留痕的 `模型调用[]` 就是这个形状。**
+
+    存的是**发出去的原文和收回来的原文**，不是摘要 —— 「这一轮为什么这么判」
+    最后争的往往就是提示里那几个字（第几层、给没给依据），摘要把争的那部分
+    正好抹掉。
+
+    ⚠️ **「原文」的那份不进留痕 —— 留痕里是脱敏过的那一份。** 这里是记录钩子
+    的入参，谁接钩子谁决定存什么：`留痕.收模型调用` 会把它整棵洗过一遍
+    （手机号打成 `138****8000`），所以**拿留痕去复现「模型看见了什么」，
+    看见的是脱敏版**，和真发出去的那串差着几个星号。
+    这是有意的（留痕是长期材料），但别把留痕里那份说成「逐字就是发出去的」。
+    """
+
+    位: str
+    """拆主张／认口径／查六源／生成话术／认诉求／认权限／需求分解。
+
+    ⚠️ **空串 ＝ 这一路没接记录钩子**（测试装配就是这样）。`_问` 自己不知道
+    它替哪一位问的 —— 六个位都从这一个口子过，位名是**装配层**给的，
+    见 `当前模型位`。
+    """
+    模型: str
+    系统: str
+    提示: str
+    回答: str
+    要JSON: bool
+    输入token: int | None = None
+    """`回应.usage.prompt_tokens`。**顺路捞的，不是验收项** ——
+    厂商不给就是 `None`（步骤 7.3「成本实测」要它，本步只负责记下来）。"""
+    输出token: int | None = None
+
+
+#: 当前这次调用属于哪个模型位。**由装配层设，不由 `_问` 猜。**
+#:
+#: ⚠️ **用 `ContextVar` 不用模块变量**：判定路由是 `sync def`，跑在 Starlette 的
+#: 线程池里 —— 模块变量会被两个并发请求串台，而串台的后果是留痕里
+#: 「位」记成另一个请求的，两处都看着对。
+#:
+#: ⚠️ **不从调用栈上取调用方名字**：那种做法在函数改名之后静默记成空串，
+#: 而空串在这套口径里是合法值（＝没接钩子），所以错了也看不出来。
+当前模型位: ContextVar[str] = ContextVar("当前模型位", default="")
+
+#: 收下每一次调用的口子。**`None` ＝ 不记录，`_问` 行为逐字不变。**
+#:
+#: 装配层给它接上 `api/留痕.收模型调用`（`main.启动装配`）；测试走
+#: `ASGITransport` **不触发 lifespan**，所以测试里它一直是 `None` —— 正是要的。
+#: 单测要测记录时自己设，测完 `finally` 摘掉。
+记录钩子: Callable[[模型调用], None] | None = None
+
+#: 记不上时要说一声。**静默吞掉和「这一路本来就没接钩子」长得一样** ——
+#: 而后者是合法常态（测试装配就是），所以不留一句话就查不出来。
+#: 理由同 `检索/先例库.py` 那个 `日志`。
+日志 = logging.getLogger(__name__)
 
 
 class LLM不可用(RuntimeError):
@@ -284,4 +356,31 @@ def _问(
     except Exception as 错:  # noqa: BLE001 —— 见 LLM不可用 的文档串
         raise LLM不可用(f"问 {用模型} 失败：{错}") from 错
 
-    return 回应.choices[0].message.content or ""
+    回答 = 回应.choices[0].message.content or ""
+
+    # ── 调用记录（留痕，步骤 6）────────────────────────────────
+    # 整段包在 try 里：**留痕是旁路，它出任何错都不该让一次成功的模型调用
+    # 变成 500**。代价是这条路上的问题在接口上看不见，所以失败要留一句日志。
+    #
+    # `usage` 拿 `getattr` 取：这个端点给，别的兼容端点不一定给 ——
+    # 少两个 token 数不该让这一次调用记不上（那两格本来就不是验收项）。
+    收 = 记录钩子
+    if 收 is not None:
+        try:
+            用量 = getattr(回应, "usage", None)
+            收(
+                模型调用(
+                    位=当前模型位.get(),
+                    模型=用模型,
+                    系统=系统,
+                    提示=提示,
+                    回答=回答,
+                    要JSON=要JSON,
+                    输入token=getattr(用量, "prompt_tokens", None),
+                    输出token=getattr(用量, "completion_tokens", None),
+                )
+            )
+        except Exception as 错:  # noqa: BLE001 —— 见上：不许连坐
+            日志.warning("模型调用没能记进留痕（%s）：%r", 用模型, 错)
+
+    return 回答
