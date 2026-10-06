@@ -126,10 +126,10 @@
 }
 .primer-panel { min-height: 0; width: 390px; background: #f3f5f4; }
 .primer-brand-row { flex: 0 0 48px; display: flex; align-items: center; gap: 9px; padding: 5px 14px; }
-.primer-brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 11px; background: linear-gradient(145deg,#363b3f,#191d20); color: #c9a227; font-size: 20px; box-shadow: 0 5px 10px -5px #3335; }
-.primer-brand-name { display: flex; flex-direction: column; gap: 1px; }
-.primer-brand-name strong { font-size: 15px; line-height: 18px; font-weight: 600; }
-.primer-brand-name span { color: #757b78; font-size: 10px; }
+.primer-brand-mark { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 11px; background: linear-gradient(145deg,#30312e,#191b19); color: #c9a227; font-size: 22px; font-weight: 700; box-shadow: inset 0 1px 0 #ffffff30,0 5px 10px -5px #3335; }
+.primer-brand-name { display: grid; grid-template-columns: max-content; gap: 3px; }
+.primer-brand-name strong { display: flex; justify-content: space-between; width: 0; min-width: 100%; color: #c9a227; font-size: 17px; line-height: 18px; font-weight: 700; }
+.primer-brand-subtitle { color: #8b8880; font-size: 11px; line-height: 14px; font-weight: 500; white-space: nowrap; }
 .primer-connection { margin-left: auto; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 999px; font-size: 10px; white-space: nowrap; }
 .primer-slots { display: grid; grid-template-rows: 176px minmax(250px,1fr) 224px; gap: 8px; padding: 8px; min-height: 0; align-content: stretch; }
 .primer-slots > * { min-width: 0; margin: 0; }
@@ -209,13 +209,14 @@
 .primer-evidence-detail[open] .primer-source-chevron { transform: rotate(90deg); }
 .primer-source-detail { padding: 8px 10px; background: #f6f7f5; border-radius: 10px; }
 .primer-precedent { display: flex; flex: 0 0 25px; align-items: center; justify-content: flex-end; gap: 5px; padding: 0 14px; margin-top: auto; font-size: var(--primer-caption); color: #747a79; }
-.primer-count-swap { position: relative; display: inline-grid; min-width: 2ch; }
+.primer-count-swap { --count-delay: 0ms; position: relative; display: inline-grid; min-width: 2ch; margin-left: 18px; }
+.primer-count-swap[data-demo="true"] { --count-delay: 1800ms; }
 .primer-precedent-number, .primer-count-old { grid-area: 1 / 1; font-size: 13px; font-variant-numeric: tabular-nums; color: #665413; }
 .primer-count-old { opacity: 0; }
 .primer-count-delta { position: absolute; right: 100%; top: 0; margin-right: 5px; color: #a17b19; font-size: 11px; font-style: normal; opacity: 0; }
-.primer-count-swap[data-changed="true"] .primer-count-old { animation: primer-number-out 300ms ease-in 500ms both; }
-.primer-count-swap[data-changed="true"] .primer-precedent-number { animation: primer-number-in 620ms var(--primer-ease) 800ms both; }
-.primer-count-delta { animation: primer-delta 1650ms var(--primer-ease) both; }
+.primer-count-swap[data-changed="true"] .primer-count-old { animation: primer-number-out 300ms ease-in calc(var(--count-delay) + 500ms) both; }
+.primer-count-swap[data-changed="true"] .primer-precedent-number { animation: primer-number-in 620ms var(--primer-ease) calc(var(--count-delay) + 800ms) both; }
+.primer-count-delta { animation: primer-delta 1650ms var(--primer-ease) var(--count-delay) both; }
 /* 框架不入场、不改高度；三个内容区从同一时刻启动，各自内部错峰。 */
 .primer-fact[data-motion="identity"] > p:nth-child(n+2) { animation: primer-identity 780ms var(--primer-ease) both; }
 .primer-fact[data-motion="promise"] { animation: primer-promise 600ms var(--primer-ease) 320ms both; }

@@ -279,7 +279,7 @@ export default function PrimerPanel({
       {/* 数据源标记。**常驻，而且不挂在 `import.meta.env.DEV` 后面** —— 见 `兜底`。 */}
       <div className="primer-brand-row">
         <span className="primer-brand-mark" aria-hidden="true">P</span>
-        <div className="primer-brand-name"><strong>Primer</strong><span>AI 客服协作助手</span></div>
+        <div className="primer-brand-name"><strong aria-label="Primer">{'Primer'.split('').map((letter, index) => <span key={index} aria-hidden="true">{letter}</span>)}</strong><span className="primer-brand-subtitle">AI 客服协作助手</span></div>
         <p
         className={`primer-connection ${
           全连 ? 'bg-panel text-ink-4' : 'bg-hold-soft text-hold-ink'
