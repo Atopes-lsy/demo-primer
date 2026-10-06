@@ -2,6 +2,7 @@ import { useState } from 'react'
 import IconRail from '../components/IconRail'
 import SessionPanel from '../components/session/SessionPanel'
 import ChatPanel from '../components/chat/ChatPanel'
+import { sendPolicy } from '../components/chat/sendPolicy'
 import PrimerPanel from '../components/plugin/PrimerPanel'
 import { agent, shopMetrics } from '../data'
 import type { Session } from '../types'
@@ -20,7 +21,7 @@ export default function ReviewApp() {
   const active = sessions.find((s) => s.会话ID === id)!
   const patch = (fn: (s: Session) => Session) => setSessions((all) => all.map((s) => s.会话ID === id ? fn(s) : s))
   const send = (text: string) => {
-    if (!text.trim()) return
+    if (sendPolicy(text, active, true).kind !== 'ready') return
     patch((s) => ({...s, 草稿:'', 消息:[...s.消息, reviewMessage(s,text.trim(),'客服',s.消息.length+1)]}))
     setSent((prev) => ({...prev,[id]:true}))
   }
