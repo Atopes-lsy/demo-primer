@@ -87,7 +87,7 @@ export default function CustomerStateCard({ rows, 以前, 已结束 }: Props) {
   const 可见 = expanded ? rows : [...rows.slice(0, 默认展开), ...后段.filter(必须可见)]
 
   return (
-    <section className="overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
+    <section className="primer-surface-in overflow-hidden rounded-[20px] border border-white/90 bg-panel/90 shadow-[0_8px_24px_-14px_rgba(46,51,56,0.2)] backdrop-blur-xl">
       <header className="flex items-center justify-between px-3 py-2">
         <h2 className="text-base font-semibold text-ink">顾客情况</h2>
         <span className="text-body text-ink-3">每条消息都重读</span>

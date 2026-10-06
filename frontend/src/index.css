@@ -118,6 +118,66 @@
   }
 }
 
+/* Primer 自有区域的入场与按压反馈；千牛原生区域不引用这些类。 */
+@keyframes primer-surface-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes primer-float-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.primer-surface-in {
+  animation: primer-surface-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.primer-float-in {
+  animation: primer-float-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.primer-action {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.primer-action:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.04);
+}
+
+.primer-action:active {
+  transform: translateY(0) scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primer-surface-in,
+  .primer-float-in {
+    animation: none;
+  }
+
+  .primer-action {
+    transition: none;
+  }
+}
+
 /* 细滚动条，贴近桌面客户端观感 */
 @utility scrollbar-thin {
   scrollbar-width: thin;
