@@ -129,8 +129,9 @@
 
 .primer-slots {
   display: grid;
-  grid-template-rows: 160px minmax(360px, 1fr) 238px;
-  gap: 12px;
+  grid-template-rows: 220px minmax(0, 1fr) 234px;
+  gap: 8px;
+  padding: 8px;
   min-height: 0;
   align-content: stretch;
 }
@@ -164,6 +165,9 @@
 }
 .primer-fact { min-width: 0; padding: 8px 10px; border: 0; border-radius: 12px; background: #f5f6f4; }
 .primer-fact:nth-child(n+3) { grid-column: 1 / -1; padding: 4px 8px; background: transparent; }
+.primer-fact:has(.text-danger) { display: grid; grid-template-columns: 1fr auto; gap: 0 6px; }
+.primer-fact:has(.text-danger) > p:first-child { grid-column: 1 / -1; }
+.primer-fact:has(.text-danger) > .text-danger { grid-column: 2; grid-row: 2; align-self: center; }
 .primer-fact > p:first-child { color: #757b78; font-size: 12px; font-weight: 400; }
 .primer-fact > p:nth-child(2) { font-size: 13px; font-weight: 500; }
 .primer-fact .text-danger { width: fit-content; margin-left: auto; padding: 2px 8px; border-radius: 8px; color: #a1322b; background: #fcf0ee; text-align: center; }
@@ -183,7 +187,7 @@
 .primer-advice > .border-t { flex: 0 0 auto; max-height: 72px; overflow-y: auto; scrollbar-width: thin; }
 .primer-evidence > button { min-height: 44px; padding: 10px 14px; }
 .primer-evidence > div { border: 0; padding: 0 14px 10px; }
-.primer-evidence-row { height: 31px; min-height: 31px; gap: 8px; }
+.primer-evidence-row { height: 28px; min-height: 28px; gap: 8px; }
 .primer-evidence-row .truncate { font-size: 12px; font-weight: 400; }
 .primer-evidence-row .bg-hold { background: #bf9a28; }
 .primer-evidence-row .text-hold-ink { color: #806717; }
@@ -195,6 +199,30 @@
 .primer-evidence-detail > summary::-webkit-details-marker { display: none; }
 .primer-evidence-detail[open] .primer-source-chevron { transform: rotate(90deg); }
 .primer-source-detail { padding: 8px 10px; background: #f6f7f5; border-radius: 10px; }
+/* 常用桌面高度下三槽同屏：先收空隙，不缩放千牛，不用裁切假装没有滚动。 */
+@media (max-height: 820px) {
+  .primer-panel { width: 390px; --primer-title: 14px; --primer-body: 12px; --primer-caption: 11.5px; }
+  .primer-slots { grid-template-rows: 180px minmax(0, 1fr) 204px; }
+  .primer-panel section > header { min-height: 30px; padding: 6px 12px; }
+  .primer-fact { padding: 5px 8px; }
+  .primer-fact:nth-child(n+3) { padding: 2px 8px; }
+  .primer-fact > p:first-child { font-size: 11.5px; }
+  .primer-fact > p:nth-child(2) { font-size: 12px; }
+  .primer-customer-facts { gap: 4px; margin-bottom: 4px; }
+  .primer-customer > button { min-height: 24px; padding: 2px 12px; }
+  .primer-advice-body { padding: 0 12px 8px; }
+  .primer-advice:has(.primer-advice-body > div > .primer-action) { padding-bottom: 48px; }
+  .primer-advice-body > div > button.primer-action { bottom: 8px; min-height: 34px; height: 34px; }
+  .primer-advice-body > div > p:first-child { font-size: 13px; }
+  .primer-advice-body .mt-2 { margin-top: 5px; }
+  .primer-judgement { padding: 2px 8px; }
+  .primer-evidence > button { flex-basis: 30px; min-height: 30px; padding: 4px 12px; }
+  .primer-evidence > div { padding: 0 12px 4px; }
+  .primer-evidence-row { height: 25px; min-height: 25px; }
+}
+.primer-judgement { position: absolute; right: 12px; top: 7px; max-width: 62%; }
+.primer-advice > header { padding-right: 140px; }
+.primer-advice-body > div:first-of-type { margin-top: 0; }
 .primer-evidence-detail:nth-child(2) .primer-evidence-row { animation-delay: 15ms; }
 .primer-evidence-detail:nth-child(3) .primer-evidence-row { animation-delay: 30ms; }
 .primer-evidence-detail:nth-child(4) .primer-evidence-row { animation-delay: 45ms; }
