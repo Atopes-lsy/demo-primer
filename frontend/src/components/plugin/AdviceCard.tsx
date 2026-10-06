@@ -154,8 +154,8 @@ export default function AdviceCard({
       </header>
 
       <div className="primer-advice-body px-3 pb-3">
-        <p className="primer-judgement ml-auto block w-fit rounded-full bg-canvas/80 px-3 py-1.5 text-body font-medium text-ink-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ring-1 ring-white/80">
-          AI 判断：{advice.判断}
+        <p title={`AI 判断：${advice.判断}`} className="primer-judgement ml-auto block w-fit rounded-full bg-canvas/80 px-3 py-1.5 text-body font-medium text-ink-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ring-1 ring-white/80">
+          {advice.形态 === '有风险' ? '必须转交' : advice.形态 === '需要授权' ? '需要报备' : '客服确认发送'}
         </p>
 
         {/* 需要话术：给出成稿，客服看一眼点一下 */}
