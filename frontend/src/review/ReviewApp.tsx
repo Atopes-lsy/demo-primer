@@ -4,7 +4,6 @@ import SessionPanel from '../components/session/SessionPanel'
 import ChatPanel from '../components/chat/ChatPanel'
 import { sendPolicy } from '../components/chat/sendPolicy'
 import PrimerPanel from '../components/plugin/PrimerPanel'
-import { agent, shopMetrics } from '../data'
 import type { Session } from '../types'
 import type { 播放状态 } from '../hooks/use播放器'
 import { reviewEvidence, reviewMessage, reviewSessions } from './scenarios'
@@ -31,7 +30,7 @@ export default function ReviewApp() {
   return <div className="flex h-full w-full overflow-hidden">
     <IconRail 会话数={sessions.length} />
     <SessionPanel sessions={sessions} activeId={id} onSelect={setId} 默认分组 />
-    <ChatPanel key={id} session={active} agent={agent} metrics={shopMetrics} 播放={snapshot} 隐藏回放
+    <ChatPanel key={id} session={active} 播放={snapshot} 隐藏回放
       验收处置已执行={Boolean(active.报备 || active.转交 || active.本轮处置?.some((d) => d.输出 === 'AI直发'))}
       onDraftChange={(text) => patch((s) => ({...s,草稿:text}))} onSend={send} 本轮已发={sent[id]} />
     <PrimerPanel session={active} 验收模式 六源依据={reviewEvidence[id]} 兜底={[]}

@@ -12,12 +12,10 @@ import { 查事实 } from '../../data/事实'
 import { 查禁语 } from '../../data/koujing'
 import type { 剧本 } from '../../data/剧本'
 import { 停的样子, type 播放状态 } from '../../hooks/use播放器'
-import type { Agent, Session, ShopMetric } from '../../types'
+import type { Session } from '../../types'
 import Composer from './Composer'
 import MessageList from './MessageList'
-import MetricBar from './MetricBar'
 import ProductCard from './ProductCard'
-import 播放器 from './播放器'
 import { sendPolicy } from './sendPolicy'
 
 type Props = {
@@ -26,12 +24,10 @@ type Props = {
   隐藏回放?: boolean
   /** 仅离线验收的成功动作记录；不用于改写真实会话判定。 */
   验收处置已执行?: boolean
-  agent: Agent
-  metrics: ShopMetric[]
   onSend: (text: string) => void
   /** 草稿存在会话上，切走再切回来不会丢。 */
   onDraftChange: (text: string) => void
-  /** 当前会话的演示剧本。普通会话没有 —— 那种会话的回放控制收在标题栏上（`回放键`）。 */
+  /** 当前会话的演示剧本。普通会话没有。**回放控制两种会话都在标题栏上**（`回放键`）。 */
   剧本?: 剧本
   播放: 播放状态
   /**
@@ -43,17 +39,17 @@ type Props = {
 }
 
 /**
- * 真窗口那一条回放的控制 —— **收成一颗按钮，挂在标题栏上**（2026-10-05）。
+ * 标题栏上那颗回放键 —— **一条会话只有这一颗按钮**。
  *
- * 真窗口要的是「点开看它演」，不是「拖刻度讲解」：不需要刻度条、速度档、
- * 「跳到第 N 条」。它只剩两件事要人做 —— 让它演、让它停。演到头按钮变 ↻，
- * 按一下从头再演一遍（`播放()` 在末格的语义就是回 0）。
+ * 2026-10-05 先在真窗口上收成这样，2026-10-07 演示会话也并过来（原来它另有一条
+ * 底部回放条 `播放器.tsx`，那次删了）：要的是「点开看它演」，不是「拖刻度讲解」，
+ * 不需要刻度条、速度档、「跳到第 N 条」。只剩两件事要人做 —— 让它演、让它停。
+ * 演到头按钮变 ↻，按一下从头再演一遍（`播放()` 在末格的语义就是回 0）。
  *
  * # 旁边那行琥珀字不是装饰
  *
  * `App.真窗口停` 那把刹车（建议得先被采纳）会按住时间线，那一刻按 ▶ **按不动**
- * —— 没有这行字，演示的人只会以为播放器卡死了，然后一直按。它念的是
- * `停的样子`，和演示线那条回放条上的一模一样（那一头写着为什么不许两处各拼一遍）。
+ * —— 没有这行字，演示的人只会以为卡死了，然后一直按。它念的是 `停的样子`。
  */
 function 回放键({ 播放 }: { 播放: 播放状态 }) {
   const 空 = 播放.总格数 === 0
@@ -113,13 +109,11 @@ function ChatHeader({ session, 回放 }: { session: Session; 回放?: 播放状�
   )
 }
 
-/** 中部核心区：指标条 · 买家信息 · 商品卡 · 消息流 · 输入框。 */
+/** 中部核心区：买家信息 · 商品卡 · 消息流 · 输入框。 */
 export default function ChatPanel({
   session,
   隐藏回放 = false,
   验收处置已执行 = false,
-  agent,
-  metrics,
   onSend,
   onDraftChange,
   剧本,
@@ -146,27 +140,19 @@ export default function ChatPanel({
 
   return (
     <section className="flex min-w-0 flex-1 flex-col bg-canvas">
-      <MetricBar agent={agent} metrics={metrics} />
-
       {session ? (
         <>
-          <ChatHeader session={session} 回放={剧本 || 隐藏回放 ? undefined : 播放} />
-          {/* 回放条**只给演示两条线**（2026-10-05）。真窗口那条路走标题栏上那颗
-              按钮 —— 两种会话的格子单位不一样（步 / 条），挤在同一排刻度上迟早
-              要换算，而换算过一次就错了（见 `播放器` 文件头）。
-              `key` 挂会话号：切会话时把「跳到第 N 步」输入框里残留的上一条会话的
-              数字清掉，否则新会话一按回车会跳到一个莫名其妙的位置。 */}
-          {剧本 ? <播放器 key={session.会话ID} state={播放} 剧本={剧本} /> : null}
+          <ChatHeader session={session} 回放={隐藏回放 ? undefined : 播放} />
           {session.订单 ? <ProductCard 订单={session.订单} /> : null}
           <MessageList
             messages={session.消息}
-            // 空态是「一步都还没演」。**单位跟着播放器走**：有剧本时那一格是一步，
+            // 空态是「一步都还没演」。**单位跟着回放进度走**：有剧本时那一格是一步，
             // 而一步未必带消息 —— 说成「有 N 条消息」会让人以为按播放能数出 N 条。
             空态文案={
               播放.总格数 === 0
                 ? undefined
                 : 剧本
-                  ? `这段演示有 ${播放.总格数} 步，按播放从第 1 步开始`
+                  ? `这段演示有 ${播放.总格数} 步，点右上角 ▶ 从第 1 步开始演`
                   : `这条会话有 ${播放.总格数} 条消息，点右上角 ▶ 从第 1 条开始演`
             }
           />
