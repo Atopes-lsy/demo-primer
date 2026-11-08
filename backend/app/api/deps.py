@@ -39,6 +39,7 @@ from functools import lru_cache, wraps
 from typing import Any
 
 from ..data.装载器 import 装载器
+from ..data.运行时消息 import 消息库
 from ..llm import 客户端
 from ..llm.拆主张 import 拆主张
 from ..llm.拆需求 import 拆需求
@@ -46,10 +47,10 @@ from ..llm.认口径 import 认口径
 from ..llm.认权限 import 认权限 as 模型认权限
 from ..llm.认诉求 import 认诉求
 from ..llm.话术生成 import 生成话术
+from ..rules.koujing import 加载口径表, 口径表数据
+from ..rules.permissions import 权限条目
 from ..检索.六源 import 查六源
 from ..检索.商品表 import 商品表, 装商品表
-from ..rules.koujing import 口径表数据, 加载口径表
-from ..rules.permissions import 权限条目
 from ..配置 import 取配置
 
 
@@ -57,6 +58,12 @@ from ..配置 import 取配置
 def 取装载器() -> 装载器:
     """装载业务数据。**第一次调用时读盘**，之后进程内复用。"""
     return 装载器.从文件(取配置().业务数据路径)
+
+
+@lru_cache(maxsize=1)
+def 取消息库() -> 消息库:
+    """本地运行时消息的持久层；与只读 xlsx 数据源分开。"""
+    return 消息库(取配置().消息库路径)
 
 
 @lru_cache(maxsize=1)

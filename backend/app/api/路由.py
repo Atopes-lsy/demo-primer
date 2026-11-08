@@ -1,28 +1,33 @@
 """HTTP 路由。
 
-**步骤 1 只有两个只读接口**，`docs/接口契约.md` 第二节那张表的头两行。
+**步骤 1 是两个只读接口**，`docs/接口契约.md` 第二节那张表的头两行。
 
 顺序是刻意的：先写这两个最简单的，验证的是「前后端能通」这件事本身 ——
 Vite 代理配没配对、CORS 过不过、中文经不经得起 JSON 往返。这些坑在五分钟的
 接口上暴露，比在判定接口上暴露便宜得多。
 
 `POST /api/判定` 是步骤 2，写在另一个模块里（它要挂三个还没实现的模型位）。
+`GET /api/先例库` 是后来加的第三个只读接口（2026-10-07），见它自己的文档串。
 """
 
 from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
+from ..访问控制 import 顾客令牌
 
 from ..data.装载器 import 装载器
+from ..data.运行时消息 import 消息库
 from ..data.顾客窗口 import 合并窗口
+from ..检索 import 先例库
 from . import deps, schemas
 from .判定 import 整会话顾客情况
 
 router = APIRouter()
 
 业务数据 = Annotated[装载器, Depends(deps.取装载器)]
+运行时消息 = Annotated[消息库, Depends(deps.取消息库)]
 """装载好的业务数据。两个只读接口都要它。
 
 写成 `Annotated` 而不是 `装: 装载器 = Depends(...)`：后者是 ruff 的 B008
@@ -43,7 +48,7 @@ def 健康检查(装: 业务数据) -> dict[str, object]:
 
 
 @router.get("/api/会话列表", response_model=list[schemas.Session], summary="左侧列表 ＋ 中部聊天区")
-def 会话列表(装: 业务数据) -> list[schemas.Session]:
+def 会话列表(装: 业务数据, 消息库: 运行时消息, 请求: Request) -> list[schemas.Session]:
     """窗口列表，按窗口 ID 排序。
 
     **没有分页、没有筛选**：114 个窗口一次给完，前端左侧列表本来就是全量渲染
@@ -91,8 +96,78 @@ def 会话列表(装: 业务数据) -> list[schemas.Session]:
     `合并窗口` 也是这个道理：它产出的每条窗口都是 `model_copy` 出来的新对象，
     装载器里那份不受影响（`data/顾客窗口.py` 模块文档串的「只读」一节）。
     """
-    窗口们, 票表 = 合并窗口(装.会话列表)
+    # 原始装载器保持只读；运行时消息在读取时叠加，避免污染赛题数据。
+    会话们 = [
+        会话.model_copy(update={"消息": [*会话.消息, *消息库.取(会话.会话ID)]})
+        for 会话 in 装.会话列表
+    ]
+    窗口们, 票表 = 合并窗口(会话们)
+    顾客ID = getattr(请求.state, 'customer_sid', None)
+    if 顾客ID:
+        # 顾客仅能看到自己会话的消息及公开身份，不含订单、工单、依据或历史。
+        return [schemas.Session(会话ID=w.会话ID, 买家昵称=w.买家昵称, 店铺=w.店铺,
+                                stage=w.stage, 消息=w.消息) for w in 窗口们 if w.会话ID == 顾客ID]
     return [
-        窗口.model_copy(update={"顾客情况": 整会话顾客情况(窗口, 票表.get(窗口.会话ID))})
+        窗口.model_copy(update={"顾客情况": 整会话顾客情况(窗口, 票表.get(窗口.会话ID)),
+                                "转交": schemas.转交状态(工单号=号) if (号 := 消息库.转交单号(窗口.会话ID)) else 窗口.转交})
         for 窗口 in 窗口们
     ]
+
+
+@router.post('/api/会话/{sid}/顾客链接')
+def 创建顾客链接(sid: str, 装: 业务数据, 消息库: 运行时消息) -> dict[str, str]:
+    if 装.找(sid) is None or sid.startswith('S_DEMO'):
+        raise HTTPException(status_code=404, detail='没有可邀请的真实会话')
+    return {'链接': f'/?live=customer&token={顾客令牌(sid)}'}
+
+
+@router.post("/api/会话/{sid}/顾客消息", response_model=schemas.ChatMessage, status_code=201)
+def 保存顾客消息(
+    sid: str, 请求: schemas.顾客消息请求, 装: 业务数据, 消息库: 运行时消息
+) -> schemas.ChatMessage:
+    """保存顾客自由输入的文本，随后可由 ``GET /api/会话列表`` 读回。"""
+    会话 = 装.找(sid)
+    if 会话 is None:
+        raise HTTPException(status_code=404, detail=f"没有这个会话：{sid}")
+    try:
+        return 消息库.保存文本(会话, 请求.内容, '买家', 请求.请求ID)
+    except ValueError as 错:
+        raise HTTPException(status_code=422, detail=str(错)) from 错
+
+
+@router.get("/api/先例库", response_model=schemas.先例库, summary="③ 先例库有多少条")
+def 先例库条数() -> schemas.先例库:
+    """右栏最下面那行「历史相似对话 N 条」的 N。
+
+    # 为什么这个数要问后端
+
+    那一行原来读的是**剧本里编的**一个数：`先例库基数 = 56`，每演一步再加一点。
+    它和盘上那个库一点关系都没有 —— 库里真实有 139 条，屏幕上从 56 起步，演完
+    七步到 57。接上之后这儿报的是 `len(取库())`：**召回先例用的那个库，就是
+    这里数的那个库**，只有一个来源。
+
+    # 它会动 —— 涨的是内存，不是盘（2026-10-07 实测）
+
+    库里的条目有两个来路（`检索/先例库.py` 模块文档串那张表）：`取材`（真人
+    客服原话，离线挑出来的）和 `回写`（模型当轮自己写的那一稿）。**盘上这
+    139 条全是取材**（`来源` 这个键在盘上压根没写）；`回写` 走的是**另一个
+    地方** —— `api/判定.py` 收尾正常时 `append` 进**进程内**那个列表，所以每
+    有一个新的「会话 × 轮次」干净收尾，这个接口的数就 +1。
+
+    ⚠️ **这里原来写的是「它一般不动、回写一条都没有」—— 当天被实测推翻了。**
+    重启后端 `curl` 报 139，浏览器一开演示线（那一下会判 `S_DEMO_A` 轮 1），
+    再 `curl` 报 **140**。所以前端「每轮判定后重拉一次」不是在等将来，
+    它现在就在用。
+
+    但**重启一次后端就回到 139**：盘上那份文件只在**进程启动读库那一次**被读，
+    之后没有任何一条路会写它（写它的只有 `--重建`）。两句话各自成立，别合成
+    一句 —— 「回写没接上」和「接上了但接口读的是盘」在屏幕上长得一模一样。
+
+    # 0 的两种来历，都不是「接口坏了」
+
+    `取库()` 在读不到文件、或者库里的 `嵌入模型` 和当前配置对不上时都返回空表
+    （对不上时余弦比出来是乱数，宁可当空库 —— 那种错表现为「召回了一批不相干
+    的东西」，不像一个错误）。两种都照实报 0，因为**这个数说的是「现在取得到
+    几条」**。盘上躺着 139 条而一条也取不出来的时候报 139，那才是假话。
+    """
+    return schemas.先例库(条数=len(先例库.取库()))

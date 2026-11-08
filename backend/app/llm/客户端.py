@@ -4,12 +4,11 @@
 一个 `openai` 包 ＋ 三个环境变量（密钥／地址／模型名）覆盖全部。
 换供应商时改的是配置，不是代码。
 
-    PRIMER_LLM_KEY     密钥。留空则回头找 `DASHSCOPE_API_KEY`
-    PRIMER_LLM_BASE_URL  OpenAI 兼容端点。默认阿里云百炼
-    PRIMER_LLM_MODEL     模型名。默认 `qwen-plus`
+    PRIMER_LLM_KEY       DeepSeek 密钥，也可由 backend/.env 读取
+    PRIMER_LLM_BASE_URL  OpenAI 兼容端点。默认 DeepSeek
+    PRIMER_LLM_MODEL     模型名。默认 `deepseek-flash`
 
-**密钥只从环境变量读，不写进任何文件。** 这不是洁癖：这个仓库要交出去，
-密钥一旦进了代码或 `.env` 就是一次泄露，而它不会被测试发现。
+密钥可从进程环境或被 Git 忽略的 `backend/.env` 读取；不能提交到仓库。
 
 `话术生成` 和 `拆需求` 各有一套（三个变量，各自回退到上面那份）
 ============================================================
@@ -36,13 +35,12 @@ Windows 的 `cmd.exe` 在非 UTF-8 代码页下不好设** —— 演示用的 G
 嵌入（`先例库`）
 ================
 
-    PRIMER_LLM_MODEL_先例库    **默认 `text-embedding-v4`**
+    PRIMER_LLM_MODEL_先例库    默认 `BAAI/bge-small-zh-v1.5`（本机 FastEmbed）
     PRIMER_LLM_BASE_URL_先例库
     PRIMER_LLM_KEY_先例库
 
-⚠️ **只有模型那条的回退不是全局。** 另外几个位不设时都落到 `qwen-plus`，而聊天
-端点不认嵌入模型名、嵌入端点也不认 `qwen-plus`。密钥和地址照旧回退（同一家厂商、
-同一把钥匙），只有模型是**各管各的默认值**，见 `先例库模型`。
+本地嵌入不调用 DeepSeek，也不需要 API Key。显式选远程嵌入模型时，必须单独
+配置嵌入地址与密钥；旧向量索引与新模型不在同一空间，切换后要重建。
 
 真实调用 vs 假模型
 ==================
@@ -76,8 +74,10 @@ from functools import lru_cache
 
 from openai import OpenAI
 
-#: 默认端点：阿里云百炼的 OpenAI 兼容模式。冒烟过 —— `qwen-plus` 打得通。
-默认地址 = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+from ..配置 import 取配置
+
+#: 默认聊天端点。真实 DeepSeek 调用需要用户提供密钥后再验收。
+默认地址 = "https://api.deepseek.com"
 
 #: 默认模型。挑它的理由：够便宜、够快，而**除了 `话术生成` 之外的三个位**
 #: 要的都是**分类**和**切分**，不是写作文。真上线换个大的，改环境变量就行。
@@ -85,10 +85,10 @@ from openai import OpenAI
 #: ⚠️ **`话术生成` 也在用它 —— 这仍然是刻意的。** 它自己那套变量不设时
 #: 就落到这儿（见 `话术生成模型`）。「它单独可配」不等于「它默认换个模型」：
 #: 换个默认值会把没配过的地方的行为一起改掉，而那正是要避免的。
-默认模型 = "qwen-plus"
+默认模型 = "deepseek-flash"
 
 #: 没设 `PRIMER_LLM_KEY` 时回头找这个 —— 环境里本来就有它。
-默认密钥变量 = "DASHSCOPE_API_KEY"
+默认密钥变量 = "DEEPSEEK_API_KEY"
 
 #: `话术生成` 那套。三个变量各自回退到上面那份 —— 见模块文档串。
 话术生成模型变量 = "PRIMER_LLM_MODEL_话术生成"
@@ -101,10 +101,9 @@ from openai import OpenAI
 需求分解密钥变量 = "PRIMER_LLM_KEY_需求分解"
 
 #: 嵌入那份。`检索/先例库.py` 用（读侧召回 ＋ 重建时嵌全库）。
-默认嵌入模型 = "text-embedding-v4"
+默认嵌入模型 = "BAAI/bge-small-zh-v1.5"
 
-#: 一次请求最多嵌几条。**10 是服务端硬上限**，超了报
-#: `batch size is invalid, it should not be larger than 10`（2026-10-05 实测）。
+#: 远程嵌入兼容路径保留每批 10 条；本地模型不受 API 批次限制。
 嵌入批 = 10
 
 先例库模型变量 = "PRIMER_LLM_MODEL_先例库"
@@ -184,15 +183,15 @@ class LLM不可用(RuntimeError):
 
 
 def 取密钥() -> str:
-    return os.environ.get("PRIMER_LLM_KEY") or os.environ.get(默认密钥变量, "")
+    return os.environ.get("PRIMER_LLM_KEY") or 取配置().LLM_KEY or os.environ.get(默认密钥变量, "")
 
 
 def 取地址() -> str:
-    return os.environ.get("PRIMER_LLM_BASE_URL") or 默认地址
+    return os.environ.get("PRIMER_LLM_BASE_URL") or 取配置().LLM_BASE_URL or 默认地址
 
 
 def 取模型() -> str:
-    return os.environ.get("PRIMER_LLM_MODEL") or 默认模型
+    return os.environ.get("PRIMER_LLM_MODEL") or 取配置().LLM_MODEL or 默认模型
 
 
 def 话术生成模型() -> str:
@@ -227,11 +226,18 @@ def 先例库模型() -> str:
 
 
 def 先例库地址() -> str:
-    return os.environ.get(先例库地址变量) or 取地址()
+    return os.environ.get(先例库地址变量, "")
 
 
 def 先例库密钥() -> str:
-    return os.environ.get(先例库密钥变量) or 取密钥()
+    return os.environ.get(先例库密钥变量, "")
+
+
+@lru_cache(maxsize=1)
+def _本地嵌入器():
+    from fastembed import TextEmbedding
+
+    return TextEmbedding(model_name=默认嵌入模型)
 
 
 @lru_cache(maxsize=8)
@@ -250,7 +256,7 @@ def _客户端(地址: str, 密钥: str) -> OpenAI:
         raise LLM不可用(
             f"没读到密钥。设 PRIMER_LLM_KEY，或设 {默认密钥变量}（默认找它）。"
         )
-    return OpenAI(api_key=密钥, base_url=地址)
+    return OpenAI(api_key=密钥, base_url=地址, max_retries=0, timeout=30)
 
 
 def 嵌文本(
@@ -262,17 +268,26 @@ def 嵌文本(
 ) -> list[list[float]]:
     """一批文本 → 一批向量，**顺序与入参一致**。
 
-    `嵌入批` 片切是服务端要求；`sorted(..., key=index)` 是**必须的**：批量接口
+    远程嵌入用 `嵌入批` 片切；`sorted(..., key=index)` 是**必须的**：批量接口
     不保证返回顺序，按到达顺序配对是静默错位 —— 向量和句子对不上，召回全靠运气，
     而且不报错。片内顺序由我们拼，片间顺序由循环拼。
     """
     if not 文本们:
         return []
     用模型 = 模型 or 先例库模型()
+    if 用模型 == 默认嵌入模型:
+        try:
+            return [向量.tolist() for 向量 in _本地嵌入器().embed(list(文本们))]
+        except Exception as 错:  # noqa: BLE001 - 调用方只需处理 LLM不可用
+            raise LLM不可用(f"本地嵌入 {用模型} 失败：{错}") from 错
+    if not (地址 or 先例库地址()) or not (密钥 or 先例库密钥()):
+        raise LLM不可用("远程嵌入须单独设置 PRIMER_LLM_BASE_URL_先例库 和 PRIMER_LLM_KEY_先例库")
     客户端_ = _客户端(地址 or 先例库地址(), 密钥 or 先例库密钥())
     出: list[list[float]] = []
     for i in range(0, len(文本们), 嵌入批):
         片 = list(文本们[i : i + 嵌入批])
+        from ..费用控制 import 预扣调用
+        预扣调用()
         try:
             回应 = 客户端_.embeddings.create(model=用模型, input=片)
         except LLM不可用:
@@ -337,6 +352,10 @@ def _问(
         消息.append({"role": "system", "content": 系统})
     消息.append({"role": "user", "content": 提示})
 
+    from ..费用控制 import 预扣调用
+    预扣调用()
+    if len(提示) + len(系统) > 20000:
+        raise LLM不可用('输入超过测试站字符上限')
     try:
         回应 = _客户端(用地址, 密钥 or 取密钥()).chat.completions.create(
             model=用模型,
@@ -349,7 +368,13 @@ def _问(
             # 只是把随机性压到最低。2026-10-02 实测：同一批 8 条各跑两次，
             # 结果逐条一致 —— **是观察，不是承诺**。
             temperature=0,
+            max_tokens=1024,
             **({"response_format": {"type": "json_object"}} if 要JSON else {}),
+            **(
+                {"extra_body": {"thinking": {"type": "disabled"}}}
+                if 用地址.rstrip("/") == 默认地址
+                else {}
+            ),
         )
     except LLM不可用:
         raise

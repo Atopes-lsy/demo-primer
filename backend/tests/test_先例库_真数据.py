@@ -40,7 +40,7 @@ def test_真库能过取库那条路(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     monkeypatch.setattr(先例库, "库路径", 先例库.默认库路径)
     先例库.清空()
-    assert len(先例库.取库()) == 139
+    assert len(先例库.取库()) == 136
     先例库.清空()
 
 
@@ -62,7 +62,7 @@ def 真库(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_随库提交的先例库形状对(真库) -> None:
-    assert all(len(t.向量) == 1024 for t in 真库)
+    assert all(len(t.向量) == 512 for t in 真库)
     assert all(t.情境 and t.答法 and t.会话ID for t in 真库)
     assert all(t.答法.strip() == t.答法 for t in 真库), "答法带头尾空白 —— 压平那道漏了"
 

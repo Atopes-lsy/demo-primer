@@ -174,6 +174,9 @@ def _线上字段(模型: type) -> set[str]:
     ("Advice", schemas.Advice),
     ("Disposition", schemas.Disposition),
     ("GuardHit", schemas.GuardHit),
+    # 2026-10-07：`GET /api/先例库` 只有一个字段，照样进这张表 ——
+    # **值一块钱的接口和值一万块的接口，字段漂移起来是一个价钱。**
+    ("先例库", schemas.先例库),
 ]
 
 

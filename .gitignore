@@ -33,3 +33,11 @@ _shot.png
 # （已经跟踪的老文件看不出来，只有新文件会中招）。锚定到仓库根就只挡这一个。
 /data/
 /docs/
+# Local verification artifacts and runtime state
+.ai/
+output/
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.log
+.build-temp/

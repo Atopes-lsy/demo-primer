@@ -584,16 +584,18 @@ export interface GuardHit {
   建议: string
 }
 
-/** 顶部指标条的一项。 */
-export interface ShopMetric {
-  标签: string
-  数值: string
-  /** 用强调色显示（如响应率低于阈值时标红）。 */
-  强调?: 'up' | 'down'
-}
-
 /** 当前登录的客服。 */
 export interface Agent {
   昵称: string
   店铺: string
+}
+
+/**
+ * ③ 先例库，`GET /api/先例库`。
+ *
+ * 右栏最下面那行「历史相似对话 N 条」。**只在后端答得上来的时候才显示** ——
+ * 拿不到就整行不渲染（`取会话列表` 那套：失败一律返回 null，不抛）。
+ */
+export interface 先例库 {
+  条数: number
 }

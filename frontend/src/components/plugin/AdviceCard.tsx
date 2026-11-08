@@ -32,8 +32,8 @@ type Props = {
   /**
    * 报备走到哪一步了。
    *
-   * 必填，没有默认值：没有剧本的会话（那种没有播放器）走不到后面两态，调用方
-   * 给的就是 `等审批` —— 那是它算出来的结论，不该由这里替它兜一个。
+   * 必填，没有默认值：真窗口那类没有剧本的会话走不到后面两态，调用方给的就是
+   * `等审批` —— 那是它算出来的结论，不该由这里替它兜一个。
    */
   报备态: 报备态
   /** 审批回来、还没发出去的那句话（`剧本事件.待发` 的第一条）。 */
@@ -68,61 +68,6 @@ type Props = {
  * ③ 琥珀（报备）、④ 红（转交）。**① `AI直发` 不在这里** ——
  * 它不做卡，右栏那一轮走空态（见 `PrimerPanel`）。
  */
-
-/**
- * 已代发清单 —— 本轮 AI 已经以客服名义发出去的话。
- *
- * 名字是英文的，理由同 `EvidenceList`（React 不认中文开头的组件）。
- *
- * # 为什么默认展开，而底下那块依据默认折叠
- *
- * 两块要回答的不是一个问题。依据是**客服想追的时候**才去看的（他得先起疑）；
- * 「有句话已经用你的名义发出去了」是**他必须知道、而且不知道自己不知道**的
- * 那类事 —— 折叠起来就等于没做。它只在真有代发时出现，不会长期占地方。
- *
- * 不展开的代价有具体形状：顾客下一句回「你刚才不是说可以退吗」，
- * 客服这边翻遍右栏找不到自己说过那句。聊天区的绿气泡也标了署名，
- * 但气泡会随着对话滚走（`types/index.ts:417`）。
- *
- * # 为什么用 `ai-*` 那组绿
- *
- * 聊天气泡里的 AI 代发、气泡下面那行署名、`本轮处置` 里的「AI直发」都是这个色。
- * 四处说的是同一件事（这话不是你打的），颜色就该是同一种。
- */
-function SentList({ 已代发 }: { 已代发: NonNullable<Advice['已代发']> }) {
-  return (
-    <div className="border-t border-ai-line bg-ai-soft px-3 py-2">
-      <p className="text-xs font-medium text-ai-ink">已代发 · 以你的名义</p>
-
-      {已代发.map((条, i) => (
-        // 内容当 key 的一部分：同一个会话里两条代发话术撞内容的情况没有，
-        // 但下标不能当唯一依据（列表会随轮次整块换）。
-        <div key={`${i}-${条.内容}`} className="mt-1.5">
-          <p className="rounded border border-line-soft bg-canvas px-2 py-2 text-xs leading-relaxed text-ink">
-            {条.内容}
-          </p>
-          {/* 署名原样出，**不加前缀** —— 它自己就写着「Primer 自动发送」，
-              和聊天区那行是同一个字符串（`MessageList` 也给它加了 ◆）。 */}
-          <p className="mt-1 text-note text-ai-ink-2">◆ {条.署名}</p>
-          {/* 这一句引的是哪几条。和底下依据清单一**不是**一回事：
-              底下那份是「本轮六源查到了什么」（`N/6` 那个分母），
-              这份是「这一句话引了哪几条」。别把两块并成一个
-              （`api/证据.py` 的模块文档串专门写了为什么）。
-
-              **空着就整行不画。** 真窗口那一档的 `依据` 恒为 `[]` —— 接口只回报
-              本轮的六源命中，说不出「这一句引了哪几条」（`App.带代发` 那段）。
-              照画的话是一行有上边距的空 `<p>`：读起来像「这句话没有依据」，而它
-              实际的意思是「这一趟我们拿不到依据」—— 两件事，分开说。 */}
-          {条.依据.length ? (
-            <p className="mt-0.5 text-note leading-relaxed text-ink-4">
-              {条.依据.map((e) => `${e.序号} ${e.出处}`).join('　')}
-            </p>
-          ) : null}
-        </div>
-      ))}
-    </div>
-  )
-}
 
 /**
  * 「Primer 建议」主卡 —— 右栏里随情况变的那一块。
@@ -190,7 +135,9 @@ export default function AdviceCard({
                     {待发句 && <p className="primer-script">{待发句.message_text}</p>}
                     <button type="button" onClick={onSendPending} className="primer-action primer-primary">一键发送</button>
                   </>}
-                  <p className="primer-action-note" title={`报备单号 ${报备.工单号}`}>{执行摘要 ?? `报备单号 ${报备.工单号} · ${报备态 === '等审批' ? `等待 ${报备.等待分钟} 分钟，对话仍由你接待` : 报备态 === '等发送' ? 待发附注 : '回访由专员接续'}`}</p>
+                  {/* 「已答复」那一档**只留单号**（2026-10-07 删）。原来尾巴上还有半句
+                      「回访由专员接续」—— 报备并不转移对话，这句话是替后台许愿。 */}
+                  <p className="primer-action-note" title={`报备单号 ${报备.工单号}`}>{执行摘要 ?? `报备单号 ${报备.工单号}${报备态 === '等审批' ? ` · 等待 ${报备.等待分钟} 分钟，对话仍由你接待` : 报备态 === '等发送' ? ` · ${待发附注}` : ''}`}</p>
                 </div>
               ) : (
                 <button type="button" onClick={onReport} className="primer-action primer-primary">一键报备</button>
@@ -207,7 +154,6 @@ export default function AdviceCard({
           </li>
         </ol>
       </div>
-      {advice.已代发?.length ? <SentList 已代发={advice.已代发} /> : null}
     </section>
   )
 }

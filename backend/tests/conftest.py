@@ -40,6 +40,25 @@ from typing import Any
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _隔离运行环境(monkeypatch, tmp_path):
+    from app.配置 import 取配置, 配置
+    from app.api import deps
+    import app.访问控制 as access
+    import app.费用控制 as budget
+
+    # 业务回归在独立可信网络边界内运行；访问验证本身由专项 HTTP 用例测试。
+    monkeypatch.setattr(access, '取配置', lambda: 配置(_env_file=None))
+    monkeypatch.setenv('PRIMER_ACCESS_PASSWORD', '')
+    monkeypatch.setattr(budget, '预扣调用', lambda: None)
+    monkeypatch.setenv('PRIMER_消息库', str(tmp_path / 'runtime.sqlite3'))
+    deps.取消息库.cache_clear()
+    取配置.cache_clear()
+    yield
+    deps.取消息库.cache_clear()
+    取配置.cache_clear()
+
+
 #: 测试期把库挪到一个**不存在**的文件上 —— 库读不到，`召回先例` 会在发请求之前返回。
 #: 用固定路径而不是 `tmp_path`：`tmp_path` 给每条用例建一个目录，720 条要多花 ~5s。
 #: 这条文件**永远不该被创建** —— 真被创建了，下面那句 assert 会让它当场炸出来。

@@ -27,6 +27,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 #: 仓库根。`配置.py` 在 `backend/app/` 下，往上是 app → backend → 根。
 仓库根 = Path(__file__).resolve().parents[2]
 
+# 始终读取应用后端目录的配置，不随终端/IDE的工作目录改变。
+默认环境文件 = Path(__file__).resolve().parents[1] / ".env"
+
 #: 默认的业务数据位置 —— 仓库内，checkout 下来就有。
 #:
 #: 文件名里那个 `(1)` 是赛题文件的本来名字（浏览器下载留下的），不是我们加的
@@ -46,6 +49,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 #: 默认值同样是绝对路径，理由和上面那条一样 —— 见本模块的文件头。
 默认商品表 = 仓库根 / "data" / "商品属性表_v7_定稿.xlsx"
 
+# 运行中的新消息不能回写赛题 xlsx。它是只读的历史输入；本地客服工作台产生的
+# 消息单独落在 SQLite 中，重启后仍能由会话列表读回。
+默认消息库 = 仓库根 / "data" / "primer_runtime.sqlite3"
+
 #: 本地开发的来源一律放行，**端口不限**。
 #:
 #: 不写死 5173：Vite 的默认端口被占用时会自己往上找（5174、5175…），
@@ -58,7 +65,17 @@ class 配置(BaseSettings):
     """进程配置。`SettingsConfigDict` 的 `extra="ignore"` 是必要的 ——
     机器上通常还躺着别的 `PRIMER_*` 变量，不该因为不认识就起不来。"""
 
-    model_config = SettingsConfigDict(env_prefix="PRIMER_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="PRIMER_", env_file=默认环境文件, env_file_encoding="utf-8", extra="ignore"
+    )
+    ACCESS_USER: str = "primer"
+    ACCESS_PASSWORD: str = ""
+    LLM_KEY: str = ""
+    LLM_BASE_URL: str = ""
+    LLM_MODEL: str = ""
+    LLM_ENABLED: bool = False
+    LLM_DAILY_CALLS: int = 100
+    LLM_MINUTE_CALLS: int = 20
 
     业务数据路径: Path = Field(
         default=默认业务数据,
@@ -68,6 +85,11 @@ class 配置(BaseSettings):
     商品表路径: Path = Field(
         default=默认商品表,
         validation_alias=AliasChoices("PRIMER_商品表", "商品表路径"),
+    )
+
+    消息库路径: Path = Field(
+        default=默认消息库,
+        validation_alias=AliasChoices("PRIMER_消息库", "消息库路径"),
     )
 
     CORS来源: list[str] = Field(

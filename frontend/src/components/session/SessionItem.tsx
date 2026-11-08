@@ -43,8 +43,7 @@ export default function SessionItem({ session, active, onClick }: Props) {
         <span className="mt-0.5 flex items-center justify-between gap-2">
           <span className="truncate text-body text-ink-3">{摘要}</span>
           {session.未读 ? (
-            <span className="shrink-0 rounded-full bg-danger px-1.5 text-note leading-4 text-white">
-              {session.未读}
+            <span aria-label={`${session.未读} 条未读消息`} title={`${session.未读} 条未读消息`} className="size-2 shrink-0 rounded-full bg-red-500">
             </span>
           ) : null}
         </span>

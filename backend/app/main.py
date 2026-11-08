@@ -27,10 +27,11 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .api import deps, 判定, 动作, 留痕, 需求分解, 路由
-from .配置 import 取配置
+from .api import deps, 判定, 动作, 审批, 留痕, 需求分解, 路由
+from .配置 import 仓库根, 取配置
 
 日志 = logging.getLogger(__name__)
 
@@ -75,6 +76,12 @@ def 装异常处理(应用: FastAPI) -> None:
     `详情` 是排障用的，前端可以只显示它。
     """
 
+    from .费用控制 import 调用受限
+
+    @应用.exception_handler(调用受限)
+    async def _调用额度错误(请求: Request, 异常: 调用受限) -> JSONResponse:
+        return JSONResponse(status_code=429, content={"错误": str(异常), "详情": "模型请求未发出"})
+
     @应用.exception_handler(StarletteHTTPException)
     async def _http错误(请求: Request, 异常: StarletteHTTPException) -> JSONResponse:
         return JSONResponse(
@@ -115,6 +122,38 @@ def 装CORS(应用: FastAPI) -> None:
     )
 
 
+#: 前端构建产物。`npm run build` 落在 `frontend/dist/`。
+#:
+#: **不在 git 里**（`.gitignore` 挡着），所以全新 checkout 上没有这一份 ——
+#: 下面那个函数必须容忍它缺席，见那里。
+前端产物 = 仓库根 / "frontend" / "dist"
+
+
+def 装静态(应用: FastAPI) -> None:
+    """把前端产物挂到 `/`，让**一个端口**把整站供出去。
+
+    给出去的那份交付包就靠它：学生双击一个 `.bat`，没有 vite、没有 node、
+    没有第二个窗口，浏览器开 `http://localhost:8000/` 就是完整的界面。
+    前端那边所有请求本来就是相对路径（`fetch('/api/判定')`），同源之后
+    `vite.config.ts` 里那段代理**在生产路径上根本用不着** —— 那句注释
+    「生产同源部署，这一整块用不上」写在那很久了，这里才把它兑现。
+
+    **没有 `dist/` 就不挂，也不报错。** 全新 checkout 上没有这一份，而开发时
+    前端跑的是 vite 自己的 5173；这里再挂一份只会多出一个会漂移的副本，让人
+    分不清屏幕上看到的是哪一份。
+
+    挂载放在**最后**（所有 `include_router` 之后）：Starlette 按注册顺序匹配，
+    `/api/*` 和 `/healthz` 先注册就先命中，这条 `/` 只兜没人认领的路径。
+    """
+    if not 前端产物.is_dir():
+        日志.info(
+            "没有前端产物（%s）—— 只提供接口，界面走 vite 的开发服务器",
+            前端产物,
+        )
+        return
+    应用.mount("/", StaticFiles(directory=前端产物, html=True), name="前端")
+
+
 app = FastAPI(
     title="Primer 判定服务",
     description="千牛客服工作台右栏插件的后端。契约见 docs/接口契约.md。",
@@ -123,9 +162,14 @@ app = FastAPI(
 )
 
 装异常处理(app)
+from .访问控制 import 验证访问
+app.middleware('http')(验证访问)
 装CORS(app)
 app.include_router(路由.router)
 app.include_router(判定.router)
 app.include_router(动作.router)
+app.include_router(审批.router)
 app.include_router(留痕.router)
 app.include_router(需求分解.router)
+
+装静态(app)

@@ -42,10 +42,11 @@ from app.api import deps, schemas, 台账, 留痕
 from app.api.动作 import _七行
 from app.api.台账 import 判定存档, 发号
 from app.data.装载器 import 装载器
+from app.data.运行时消息 import 消息库
 from app.llm.话术生成 import 不支持的去向, 生成结果
 from app.rules.pipeline import 输出类型
 from app.配置 import 取配置
-from tests.假模型 import 假认权限, 假拆需求
+from tests.假模型 import 假拆需求, 假认权限
 
 测试基地址 = "http://测试"
 
@@ -126,9 +127,10 @@ def 净台账() -> None:
 
 
 @pytest.fixture
-def 装了(真装: 装载器) -> Any:
+def 装了(真装: 装载器, tmp_path: Any) -> Any:
     """真装载器 ＋ 假模型。"""
     main.app.dependency_overrides[deps.取装载器] = lambda: 真装
+    main.app.dependency_overrides[deps.取消息库] = lambda: 消息库(tmp_path / "消息.sqlite3")
     # `查六源` 用真的 —— A 第 2 轮能判成 `报备` 全靠它查出 ⑥ 那张补发换货工单。
     # 换成假的（回「查不到」），那条会落到第 1 层、变成 `客服点发送`，
     # 于是整条 `报备` 路径一次都跑不到，而测试全绿。
@@ -425,6 +427,26 @@ async def test_发送记下这条话术兑现哪几条主张() -> None:
     # 谁也不会发现台账那一份其实没写。
     assert 台账.已发送("S_DEMO_A", 1) == [(选, "感谢您告诉我们……")]
 
+    # 顾客读回的是会话消息，不是只有台账里一笔「发过」。
+    列表 = await _打("GET", "/api/会话列表")
+    会话 = next(s for s in 列表.json() if s["会话ID"] == "S_DEMO_A")
+    assert 会话["消息"][-1]["角色"] == "客服"
+    assert 会话["消息"][-1]["message_text"] == "感谢您告诉我们……"
+
+
+@pytest.mark.usefixtures("装了")
+async def test_新顾客消息保存后可按完整快照判定() -> None:
+    列表 = (await _打("GET", "/api/会话列表")).json()
+    会话 = next(s for s in 列表 if s["会话ID"] == "S_DEMO_A")
+    发 = await _打("POST", "/api/会话/S_DEMO_A/顾客消息", 内容="新的赠品漏发问题")
+    assert 发.status_code == 201
+    回 = await _打(
+        "POST", "/api/判定", 会话ID="S_DEMO_A",
+        看到消息数=len(会话["消息"]) + 1, 当前时间=演示当前,
+    )
+    assert 回.status_code == 200, 回.text
+    assert any("新的赠品漏发问题" in d["主张"] for d in 回.json()["本轮处置"])
+
 
 @pytest.mark.usefixtures("装了")
 async def test_一条话术可以兑现多条主张() -> None:
@@ -520,7 +542,7 @@ def test_三种状态值和前端一致() -> None:
 # `等待审批`，只把那句文档改成「还没走完」那个意思）。
 
 @pytest.mark.usefixtures("装了")
-async def test_话发出去之后报备单变成已完成() -> None:
+async def test_报备单未经审批不能发送() -> None:
     """线一第 9 步：报备走完一圈，客服把话发出去 —— 这一单到这儿算走完了。
 
     ⚠️ **判据不是「发送过就完成」。** 见下面三条：没有报备单的不推进、
@@ -531,7 +553,7 @@ async def test_话发出去之后报备单变成已完成() -> None:
     assert 报["状态"] == "等待审批", "前提：刚报备完是等组长批，不是已完成"
 
     回 = (await 发送("S_DEMO_A", 2, "亲，补发已经安排上了，今天就发～", [])).json()
-    assert 回["报备单态"] == "已完成", 回
+    assert "审批" in 回["错误"], 回
 
 
 @pytest.mark.usefixtures("装了")
@@ -560,11 +582,11 @@ async def test_转交过的会话发送不推进状态() -> None:
     assert (await 转交("S_DEMO_B", 轮次=1)).json()["状态"] == "已转出"
 
     回 = (await 发送("S_DEMO_B", 1, "……", [])).json()
-    assert 回["报备单态"] is None, "已转出是终点，没有「完成」这一步"
+    assert "转交" in 回["错误"], "已转出后不得继续发送"
 
 
 @pytest.mark.usefixtures("装了")
-async def test_报备单发第二条话还是已完成() -> None:
+async def test_未审批的多次发送均被拒绝() -> None:
     """`台账.记发送` 是**追加**的（`台账.py`），一轮可以发好几条。
 
     推进是一次性的，但**推完不能把状态弄丢** —— 第二次发送要是回 `None`，
@@ -573,12 +595,12 @@ async def test_报备单发第二条话还是已完成() -> None:
     """
     await 判定一次("S_DEMO_A", 轮次=2)
     await 报备("S_DEMO_A", 轮次=2)
-    assert (await 发送("S_DEMO_A", 2, "第一条", [])).json()["报备单态"] == "已完成"
-    assert (await 发送("S_DEMO_A", 2, "第二条", [])).json()["报备单态"] == "已完成"
+    assert (await 发送("S_DEMO_A", 2, "第一条", [])).status_code == 409
+    assert (await 发送("S_DEMO_A", 2, "第二条", [])).status_code == 409
 
 
 @pytest.mark.usefixtures("装了")
-async def test_走完的单子再点一次报备状态还是已完成() -> None:
+async def test_未经审批发送失败后报备仍待审批() -> None:
     """客服报完、话也发了（单子走完），又手滑点了一下［一键报备］。
 
     **状态不该退回 `等待审批`。** 同一轮同一个诉求，`发号` 给的是同一个号
@@ -594,7 +616,7 @@ async def test_走完的单子再点一次报备状态还是已完成() -> None:
     await 发送("S_DEMO_A", 2, "亲，补发安排上了～", [])
 
     再点 = (await 报备("S_DEMO_A", 轮次=2)).json()
-    assert 再点["状态"] == "已完成", "同一张单子，它走完了"
+    assert 再点["状态"] == "等待审批", "未经批准，发送失败不能完成"
     assert 再点["单号"] == "JJ20260929001", "同一个诉求，号也不该换"
 
 

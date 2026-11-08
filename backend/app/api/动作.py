@@ -40,6 +40,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..data.装载器 import 装载器
+from ..data.运行时消息 import 消息库, 已转交错误
 from ..rules.pipeline import 输出类型
 from ..rules.triggers import 触发编号
 from . import deps, schemas, 台账
@@ -47,6 +48,7 @@ from . import deps, schemas, 台账
 router = APIRouter()
 
 业务数据 = Annotated[装载器, Depends(deps.取装载器)]
+运行时消息 = Annotated[消息库, Depends(deps.取消息库)]
 """报备／转交要从会话上取两样东西：订单（行 2 商品）和工单（行 1 的单名）。
 
 **判定产物不在这儿取** —— 那些在台账里。混着取的话，两个来源差一轮的时候
@@ -68,7 +70,7 @@ _单名: dict[str, str] = {"补发换货": "补发"}
 
 
 @router.post("/api/会话/{sid}/报备", response_model=schemas.交接包, summary="一键报备")
-def 报备(sid: str, 请求: schemas.动作请求, 装: 业务数据) -> schemas.交接包:
+def 报备(sid: str, 请求: schemas.动作请求, 装: 业务数据, 库: 运行时消息) -> schemas.交接包:
     """报备 ＋ 自动带全的交接包，状态 `等待审批`。
 
     ⚠️ **回的是七行 ＋ 单号，不是只回一个号。** 工单 §二 那张表把这一行写成
@@ -79,23 +81,40 @@ def 报备(sid: str, 请求: schemas.动作请求, 装: 业务数据) -> schemas
     立完单顺手记进台账（`台账.记报备`）—— 它和那张单子在同一个轮次上，
     `发送` 之后靠它把状态推到 `已完成`。记的动作在 `_交接` 里（状态的来源是那儿）。
     """
-    return _交接(sid, 请求.轮次, 装, 转交=False)
+    if 装.找(sid) is None:
+        raise HTTPException(404, f"没有这个会话：{sid}")
+    snapshot = _存档或409(sid, 请求.轮次)
+    receipt = _交接(sid, 请求.轮次, 装, 转交=False, 快照=snapshot)
+    from .审批 import 判定版本
+    conn = 库._连接()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        context = conn.execute("SELECT buyer, revision FROM approval_decisions WHERE sid=?", (sid,)).fetchone()
+        if not context or context[1] != 判定版本(snapshot.本轮处置):
+            raise HTTPException(409, "判定已更新，请刷新后重试")
+        conn.execute("INSERT OR REPLACE INTO workbench_reports VALUES (?, ?, ?, ?)", (sid, context[0], context[1], receipt.model_dump_json()))
+        conn.commit()
+    finally:
+        conn.close()
+    return receipt
 
 
 @router.post("/api/会话/{sid}/转交", response_model=schemas.交接包, summary="立即转交")
-def 转交(sid: str, 请求: schemas.动作请求, 装: 业务数据) -> schemas.交接包:
+def 转交(sid: str, 请求: schemas.动作请求, 装: 业务数据, 库: 运行时消息) -> schemas.交接包:
     """转交 ＋ 自动带全的交接包，状态 `已转出`。
 
     **不记报备单** —— `已转出` 是终点，没有「完成」这一步（见 `台账.推进报备单`）。
     """
-    return _交接(sid, 请求.轮次, 装, 转交=True)
+    return _交接(sid, 请求.轮次, 装, 转交=True, 库=库)
 
 
 @router.post(
     "/api/会话/{sid}/发送", response_model=schemas.发送响应, summary="记下这条话术兑现哪几条主张"
 )
-def 发送(sid: str, 请求: schemas.发送请求) -> schemas.发送响应:
-    """**不查禁语、不查事实。** 那两道在本地（见模块文档串），这里是留痕。
+def 发送(
+    sid: str, 请求: schemas.发送请求, 装: 业务数据, 消息库: 运行时消息
+) -> schemas.发送响应:
+    """发送前校验转交、审批、判定版本及发货/签收事实；禁语提示仍在前端。
 
     一个认不出的处置 id ＝ **400，不静默丢掉**：丢掉的话这一句在留痕里变成
     「一条主张都没兑现」，而那和「客服确实什么都没兑现」长得一模一样。
@@ -105,6 +124,10 @@ def 发送(sid: str, 请求: schemas.发送请求) -> schemas.发送响应:
     见 `schemas.发送响应.报备单态`。
     """
     存档 = _存档或409(sid, 请求.轮次)
+    if any(d.输出 == 输出类型.转交 for d in 存档.本轮处置):
+        raise HTTPException(409, "需要转交专席，普通发送已锁定")
+    if any(d.输出 == 输出类型.报备 for d in 存档.本轮处置):
+        raise HTTPException(409, "授权回复必须提交审批并从审批单发送")
     表 = {条.id: 条.主张 for 条 in 存档.本轮处置}
     找不到 = [编号 for 编号 in 请求.采用的处置id if 编号 not in 表]
     if 找不到:
@@ -112,6 +135,16 @@ def 发送(sid: str, 请求: schemas.发送请求) -> schemas.发送响应:
             status_code=400,
             detail=f"这些处置 id 不在第 {存档.轮次} 轮：{'、'.join(找不到)}",
         )
+    会话 = 装.找(sid)
+    if 会话 is None:
+        raise HTTPException(status_code=404, detail=f"没有这个会话：{sid}")
+    try:
+        from .审批 import 判定版本
+        消息库.保存文本(会话, 请求.话术, '客服', 请求.请求ID, 判定版本=判定版本(存档.本轮处置))
+    except 已转交错误 as 错:
+        raise HTTPException(status_code=409, detail=str(错)) from 错
+    except ValueError as 错:
+        raise HTTPException(status_code=422, detail=str(错)) from 错
     台账.记发送(sid, 存档.轮次, 请求.采用的处置id, 请求.话术)
     return schemas.发送响应(
         会话ID=sid,
@@ -154,13 +187,13 @@ def _存档或409(会话ID: str, 轮次: int) -> 台账.判定存档:
     return 存档
 
 
-def _交接(会话ID: str, 轮次: int, 装: 装载器, *, 转交: bool) -> schemas.交接包:
+def _交接(会话ID: str, 轮次: int, 装: 装载器, *, 转交: bool, 库: 消息库 | None = None, 快照: 台账.判定存档 | None = None) -> schemas.交接包:
     会话 = 装.找(会话ID)
     if 会话 is None:
         # 和 `/api/判定` 一样：**404 不是空单子**（工单 §四 第 1 步的同一理由）。
         raise HTTPException(status_code=404, detail=f"没有这个会话：{会话ID}")
 
-    存档 = _存档或409(会话ID, 轮次)
+    存档 = 快照 if 快照 is not None else _存档或409(会话ID, 轮次)
     要的 = 输出类型.转交 if 转交 else 输出类型.报备
     立单 = [条 for 条 in 存档.本轮处置 if 条.输出 == 要的]
     if not 立单:
@@ -182,6 +215,8 @@ def _交接(会话ID: str, 轮次: int, 装: 装载器, *, 转交: bool) -> sche
     # 转交过的会话再发消息时 `推进报备单` 回 `None`（`台账._立单轮次` 只看报备）。
     # 两边合成一条的话，转交过的会话会凭空多出一张「已完成」的报备单。
     if 转交:
+        assert 库 is not None
+        单号 = 库.转出(会话ID, 单号)
         台账.记转交(会话ID, 轮次, 单号=单号)
         状态: schemas.交接包态 = "已转出"
     else:

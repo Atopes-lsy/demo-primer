@@ -16,6 +16,7 @@ dependencies = [
   # 它们从步骤 1 起就挂在这儿，但全项目 0 次 import —— 六源是查表不是检索
   # （① 商品属性表 20 行、② 口径表 20 条、④⑤⑥ 每会话各 1 条），
   # 理由写在 `app/检索/__init__.py` 的文件头。留着会让人以为有个用不上的向量库。
+  "fastembed>=0.7,<1",
 ]
 
 [project.optional-dependencies]

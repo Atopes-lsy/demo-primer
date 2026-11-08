@@ -125,12 +125,12 @@ def test_没设端点时话术生成沿用全局端点(monkeypatch: pytest.Monke
     assert 客户端.需求分解地址() == "https://全局.example/v1"
 
 
-def test_密钥回退到dashscope(monkeypatch: pytest.MonkeyPatch) -> None:
-    """不设任何密钥变量时，两套都回头找 `DASHSCOPE_API_KEY`（老行为）。"""
+def test_密钥回退到deepseek(monkeypatch: pytest.MonkeyPatch) -> None:
+    """不设专用密钥时，聊天位回退到 DeepSeek Key。"""
     monkeypatch.delenv("PRIMER_LLM_KEY", raising=False)
     monkeypatch.delenv("PRIMER_LLM_KEY_话术生成", raising=False)
     monkeypatch.delenv("PRIMER_LLM_KEY_需求分解", raising=False)
-    monkeypatch.setenv("DASHSCOPE_API_KEY", "环境里本来就有的")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "环境里本来就有的")
     assert 客户端.话术生成密钥() == "环境里本来就有的"
     assert 客户端.需求分解密钥() == "环境里本来就有的"
 

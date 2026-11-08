@@ -2,11 +2,9 @@
 
 # 三条要钉的
 
-1. **模型默认不是 `qwen-plus`。** 别的位不设时都落 `取模型()`，而嵌入端点不认
-   那个名字；跟着落的话报出来的是「模型不存在」，错在 `先例库` 里、离这儿很远。
-2. **按 10 片切。** 服务端硬上限，超了报
-   `batch size is invalid, it should not be larger than 10`（2026-10-05 实测）。
-3. **顺序按 `index` 排回来。** 批量接口不保证顺序，按返回顺序配对是**静默**错位
+1. 聊天默认 DeepSeek，先例库默认本地中文嵌入，不能混用聊天端点。
+2. 可选远程嵌入仍按 10 条分批，并使用独立的地址和密钥。
+3. 远程结果按 `index` 排回来。批量接口不保证顺序，按返回顺序配对是**静默**错位
    —— 向量和句子对不上，召回全靠运气，而且不报错。
 """
 
@@ -54,24 +52,30 @@ class _假嵌入端点:
 @pytest.fixture
 def 假端点(monkeypatch: pytest.MonkeyPatch) -> _假嵌入端点:
     端点 = _假嵌入端点()
+    monkeypatch.setenv("PRIMER_LLM_MODEL_先例库", "text-embedding-v4")
+    monkeypatch.setenv("PRIMER_LLM_BASE_URL_先例库", "https://embed.example/v1")
+    monkeypatch.setenv("PRIMER_LLM_KEY_先例库", "test-key")
     monkeypatch.setattr(客户端, "_客户端", lambda 地址, 密钥: 端点)
     return 端点
 
 
 def test_嵌入模型默认不是聊天模型(monkeypatch: pytest.MonkeyPatch) -> None:
-    """全局模型换成别的，嵌入那份**一点都不动** —— 它默认就是 `text-embedding-v4`。"""
+    """全局聊天模型换掉，本地嵌入模型不跟着换。"""
     monkeypatch.setenv("PRIMER_LLM_MODEL", "别的模型")
+    monkeypatch.delenv("PRIMER_LLM_MODEL_先例库", raising=False)
     assert 客户端.取模型() == "别的模型"
-    assert 客户端.先例库模型() == "text-embedding-v4"
-    assert 客户端.默认嵌入模型 == "text-embedding-v4"
+    assert 客户端.先例库模型() == "BAAI/bge-small-zh-v1.5"
+    assert 客户端.默认嵌入模型 == "BAAI/bge-small-zh-v1.5"
 
 
-def test_密钥和地址照旧跟着全局走(monkeypatch: pytest.MonkeyPatch) -> None:
-    """只有模型那条的回退不是全局 —— 密钥和地址是同一家厂商同一把。"""
+def test_嵌入密钥和地址不误用DeepSeek(monkeypatch: pytest.MonkeyPatch) -> None:
+    """远程嵌入必须有自己的端点和密钥。"""
     monkeypatch.setenv("PRIMER_LLM_KEY", "全局密钥")
     monkeypatch.setenv("PRIMER_LLM_BASE_URL", "https://别处")
-    assert 客户端.先例库密钥() == "全局密钥"
-    assert 客户端.先例库地址() == "https://别处"
+    monkeypatch.delenv("PRIMER_LLM_KEY_先例库", raising=False)
+    monkeypatch.delenv("PRIMER_LLM_BASE_URL_先例库", raising=False)
+    assert 客户端.先例库密钥() == ""
+    assert 客户端.先例库地址() == ""
 
 
 def test_单独设了就用自己那份(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -98,9 +102,28 @@ def test_模型名一路传到请求上(假端点: _假嵌入端点) -> None:
     assert 假端点.调用[0][0] == "text-embedding-v4"
 
 
-def test_没密钥抛LLM不可用(monkeypatch: pytest.MonkeyPatch) -> None:
-    """**这条不换端点** —— 要的就是真 `_客户端` 在空密钥上举手。"""
-    for 变量 in ("PRIMER_LLM_KEY", "DASHSCOPE_API_KEY", "PRIMER_LLM_KEY_先例库"):
-        monkeypatch.delenv(变量, raising=False)
-    with pytest.raises(LLM不可用):
+def test_远程嵌入没单独配置就报错(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PRIMER_LLM_MODEL_先例库", "remote-model")
+    monkeypatch.delenv("PRIMER_LLM_BASE_URL_先例库", raising=False)
+    monkeypatch.delenv("PRIMER_LLM_KEY_先例库", raising=False)
+    with pytest.raises(LLM不可用, match="远程嵌入须单独设置"):
         客户端.嵌文本(["一句"])
+
+
+def test_本地嵌入不请求API或扣次数(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("PRIMER_LLM_MODEL_先例库", raising=False)
+
+    class 假向量:
+        def __init__(self, 值):
+            self.值 = 值
+
+        def tolist(self):
+            return [float(self.值)]
+
+    class 假本地模型:
+        def embed(self, 文本们):
+            return [假向量(i) for i, _ in enumerate(文本们)]
+
+    monkeypatch.setattr(客户端, "_本地嵌入器", lambda: 假本地模型())
+    monkeypatch.setattr(客户端, "_客户端", lambda *_: pytest.fail("本地嵌入不应请求 API"))
+    assert 客户端.嵌文本(["甲", "乙"]) == [[0.0], [1.0]]
